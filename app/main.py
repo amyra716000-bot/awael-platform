@@ -4,6 +4,7 @@ from app.database.session import Base, engine
 from app.routes import auth, stage, setup
 from app.models import user, branch, subject, chapter, section, question
 from app.routes import plan
+from app.models import subscription
 
 Base.metadata.create_all(bind=engine)
 
