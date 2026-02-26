@@ -5,6 +5,7 @@ from app.models import user
 from app.models import stage
 from app.models import branch
 from app.models import subject
+from app.models import chapter
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Awael Platform")
