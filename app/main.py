@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.security import OAuth2PasswordBearer
 from app.database.session import Base, engine
-from app.routes import auth, stage, setup
+from app.routes import auth, stage, setup, plan, subscription
 from app.models import user, branch, subject, chapter, section, question
 from app.routes import plan
 from app.models import subscription
