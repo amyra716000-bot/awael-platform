@@ -7,6 +7,7 @@ from app.models import branch
 from app.models import subject
 from app.models import chapter
 from app.models import section
+from app.models import question
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Awael Platform")
