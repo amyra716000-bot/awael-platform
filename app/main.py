@@ -8,12 +8,14 @@ from app.models import subject
 from app.models import chapter
 from app.models import section
 from app.models import question
+from app.routes import setup
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Awael Platform")
 
 app.include_router(auth.router)
 app.include_router(stage.router)
+app.include_router(setup.router)
 
 @app.get("/")
 def root():
