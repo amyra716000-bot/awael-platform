@@ -1,14 +1,8 @@
 from fastapi import FastAPI
 from app.database.session import Base, engine
-from app.routes import auth
-from app.routes import stage
-from app.models import user
-from app.models import branch
-from app.models import subject
-from app.models import chapter
-from app.models import section
-from app.models import question
-from app.routes import setup
+from app.routes import auth, stage, setup
+from app import models
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Awael Platform")
