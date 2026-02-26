@@ -3,7 +3,6 @@ from app.database.session import Base, engine
 from app.routes import auth
 from app.routes import stage
 from app.models import user
-from app.models import stage
 from app.models import branch
 from app.models import subject
 from app.models import chapter
