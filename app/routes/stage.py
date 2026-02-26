@@ -15,7 +15,7 @@ class StageCreate(BaseModel):
 def create_stage(
     stage: StageCreate,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin)
+    
 ):
     new_stage = Stage(name=stage.name)
     db.add(new_stage)
