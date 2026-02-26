@@ -5,3 +5,4 @@ from .subject import Subject
 from .chapter import Chapter
 from .section import Section
 from .question import Question
+from .plan import Plan
