@@ -1,10 +1,8 @@
 from pydantic import BaseModel
-from datetime import datetime
 from typing import Optional
 
 class UserCreate(BaseModel):
     email: str
-    full_name: str
     password: str
 
 class UserLogin(BaseModel):
@@ -14,13 +12,7 @@ class UserLogin(BaseModel):
 class UserResponse(BaseModel):
     id: int
     email: str
-    full_name: str
-    subscription_active: bool
-    subscription_expiry: Optional[datetime]
+    role: str
 
     class Config:
-        orm_mode = True
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
+        from_attributes = True
