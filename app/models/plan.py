@@ -9,6 +9,8 @@ class Plan(Base):
     name = Column(String, unique=True, nullable=False)
     price = Column(Integer, nullable=False)
 
+    duration_days = Column(Integer, nullable=False)  # مدة الاشتراك
+
     daily_question_limit = Column(Integer, default=0)
     daily_ai_limit = Column(Integer, default=0)
 
