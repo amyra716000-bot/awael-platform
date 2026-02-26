@@ -14,6 +14,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Awael Platform")
 
 app.include_router(auth.router)
+app.include_router(stage.router)
 
 @app.get("/")
 def root():
