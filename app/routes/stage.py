@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.database.session import get_db
 from app.models.stage import Stage
-from app.core.security import get_current_admin
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/admin/stages", tags=["Admin - Stages"])
