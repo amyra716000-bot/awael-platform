@@ -1,5 +1,4 @@
 import os
-import json
 import requests
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -24,25 +23,32 @@ def ask_ai(
     if not api_key:
         raise HTTPException(status_code=500, detail="API key not found")
 
+    # فحص الاشتراك
     subscription, plan = check_ai_access(db, current_user)
 
     url = "https://openrouter.ai/api/v1/chat/completions"
 
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://awael-platform.up.railway.app",
+        "X-Title": "Awael Platform"
+    }
+
     payload = {
         "model": "openchat/openchat-3.5-0106:free",
         "messages": [
-            {"role": "user", "content": question}
+            {
+                "role": "user",
+                "content": question
+            }
         ]
     }
-
-    headers = {}
-    headers["Authorization"] = "Bearer " + api_key
-    headers["Content-Type"] = "application/json"
 
     response = requests.post(
         url,
         headers=headers,
-        data=json.dumps(payload),
+        json=payload,
         timeout=30
     )
 
@@ -56,6 +62,7 @@ def ask_ai(
 
     ai_answer = result["choices"][0]["message"]["content"]
 
+    # زيادة العداد
     if subscription:
         subscription.ai_used_today += 1
         remaining = plan.daily_ai_limit - subscription.ai_used_today
