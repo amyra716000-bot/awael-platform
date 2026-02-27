@@ -29,7 +29,7 @@ def ask_ai(
     url = "https://openrouter.ai/api/v1/chat/completions"
 
     payload = {
-        "model": "mistralai/mistral-7b-instruct",
+        "model": "openchat/openchat-3.5-0106:free",
         "messages": [
             {"role": "user", "content": question}
         ]
