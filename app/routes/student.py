@@ -71,7 +71,7 @@ def get_sections(
 
 
 # =========================
-# GET QUESTIONS (Protected + Pagination + Filters)
+# GET QUESTIONS
 # =========================
 @router.get("/questions/{section_id}")
 def get_questions(
@@ -117,11 +117,12 @@ def get_questions(
 
 
 # =========================
-# MARK QUESTION COMPLETED
+# SOLVE QUESTION (with correctness)
 # =========================
-@router.post("/complete/{question_id}")
-def mark_question_completed(
+@router.post("/solve/{question_id}")
+def solve_question(
     question_id: int,
+    is_correct: bool,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
@@ -138,25 +139,27 @@ def mark_question_completed(
     ).first()
 
     if existing:
-        return {"message": "Already completed"}
+        existing.is_correct = is_correct
+        existing.is_completed = True
+    else:
+        progress = StudentProgress(
+            user_id=current_user.id,
+            question_id=question_id,
+            is_completed=True,
+            is_correct=is_correct
+        )
+        db.add(progress)
 
-    progress = StudentProgress(
-        user_id=current_user.id,
-        question_id=question_id,
-        is_completed=True
-    )
-
-    db.add(progress)
     db.commit()
 
-    return {"message": "Question marked as completed"}
+    return {"message": "Progress saved successfully"}
 
 
 # =========================
-# GET PROGRESS
+# GET SECTION PROGRESS (Advanced)
 # =========================
 @router.get("/progress/{section_id}")
-def get_progress(
+def get_section_progress(
     section_id: int,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
@@ -165,26 +168,37 @@ def get_progress(
         Question.section_id == section_id
     ).count()
 
-    completed = db.query(StudentProgress).join(Question).filter(
+    progress = db.query(StudentProgress).join(Question).filter(
         StudentProgress.user_id == current_user.id,
         Question.section_id == section_id
+    )
+
+    solved_questions = progress.count()
+
+    correct_answers = progress.filter(
+        StudentProgress.is_correct == True
     ).count()
 
-    percentage = 0
+    wrong_answers = progress.filter(
+        StudentProgress.is_correct == False
+    ).count()
+
+    success_rate = 0
     if total_questions > 0:
-        percentage = (completed / total_questions) * 100
+        success_rate = round((correct_answers / total_questions) * 100, 2)
 
     return {
         "total_questions": total_questions,
-        "completed": completed,
-        "progress_percentage": round(percentage, 2)
+        "solved_questions": solved_questions,
+        "correct_answers": correct_answers,
+        "wrong_answers": wrong_answers,
+        "success_rate": success_rate
     }
 
 
 # =========================
 # FAVORITES
 # =========================
-
 @router.post("/favorite/{question_id}")
 def add_favorite(
     question_id: int,
@@ -243,51 +257,3 @@ def get_my_favorites(
     )
 
     return favorites
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from sqlalchemy import func
-from app.database.session import get_db
-from app.models.question import Question
-from app.models.progress import StudentProgress
-from app.core.security import get_current_user
-
-router = APIRouter(prefix="/student", tags=["Student"])
-
-
-@router.get("/progress/{section_id}")
-def get_section_progress(
-    section_id: int,
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
-):
-    # كل اسئلة السكشن
-    total_questions = db.query(Question).filter(
-        Question.section_id == section_id
-    ).count()
-
-    # كل تقدم الطالب بهالسكشن
-    progress = db.query(StudentProgress).join(Question).filter(
-        StudentProgress.user_id == current_user.id,
-        Question.section_id == section_id
-    )
-
-    solved_questions = progress.count()
-
-    correct_answers = progress.filter(
-        StudentProgress.is_correct == True
-    ).count()
-
-    wrong_answers = progress.filter(
-        StudentProgress.is_correct == False
-    ).count()
-
-    success_rate = 0
-    if total_questions > 0:
-        success_rate = round((correct_answers / total_questions) * 100, 2)
-
-    return {
-        "total_questions": total_questions,
-        "solved_questions": solved_questions,
-        "correct_answers": correct_answers,
-        "wrong_answers": wrong_answers,
-        "success_rate": success_rate
