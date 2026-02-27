@@ -148,3 +148,27 @@ def mark_question_completed(
     db.commit()
 
     return {"message": "Question marked as completed"}
+@router.get("/progress/{section_id}")
+def get_progress(
+    section_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    total_questions = db.query(Question).filter(
+        Question.section_id == section_id
+    ).count()
+
+    completed = db.query(StudentProgress).join(Question).filter(
+        StudentProgress.user_id == current_user.id,
+        Question.section_id == section_id
+    ).count()
+
+    percentage = 0
+    if total_questions > 0:
+        percentage = (completed / total_questions) * 100
+
+    return {
+        "total_questions": total_questions,
+        "completed": completed,
+        "progress_percentage": round(percentage, 2)
+    }
