@@ -32,7 +32,8 @@ def subscribe(
         raise HTTPException(status_code=400, detail="You already have an active subscription")
 
     # 3️⃣ حساب تاريخ الانتهاء
-    end_date = datetime.utcnow() + timedelta(days=plan.duration_days)
+    duration = plan.duration_days or 30
+end_date = datetime.utcnow() + timedelta(days=duration)
 
     # 4️⃣ إنشاء الاشتراك
     new_subscription = Subscription(
