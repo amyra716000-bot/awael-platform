@@ -16,12 +16,11 @@ def ask_ai(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
+
     api_key = os.getenv("OPENROUTER_API_KEY")
 
-    print("API KEY VALUE:", api_key)
-
     if not api_key:
-        raise HTTPException(status_code=500, detail="API key not found")
+        raise HTTPException(status_code=500, detail="OpenRouter API key not found")
 
     # فحص الاشتراك
     subscription, plan = check_ai_access(db, current_user)
@@ -31,38 +30,40 @@ def ask_ai(
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://awael-platform.up.railway.app",
+        "HTTP-Referer": "https://awael-platform-production-6101.up.railway.app",
         "X-Title": "Awael Platform"
     }
 
-    print("MODEL USED:", "openchat/openchat-3.5-0106:free")
-
     payload = {
-    "model": "meta-llama/llama-3-8b-instruct:free",
-    "messages": [
-        {
-            "role": "user",
-            "content": question
-        }
-    ]
+        "model": "mistralai/mistral-7b-instruct:free",
+        "messages": [
+            {
+                "role": "user",
+                "content": question
+            }
+        ],
+        "temperature": 0.7
     }
 
-    response = requests.post(
-        url,
-        headers=headers,
-        json=payload,
-        timeout=30
-    )
-
-    print("STATUS:", response.status_code)
-    print("TEXT:", response.text)
+    try:
+        response = requests.post(
+            url,
+            headers=headers,
+            json=payload,
+            timeout=30
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
     if response.status_code != 200:
         raise HTTPException(status_code=500, detail=response.text)
 
     result = response.json()
 
-    ai_answer = result["choices"][0]["message"]["content"]
+    try:
+        ai_answer = result["choices"][0]["message"]["content"]
+    except:
+        raise HTTPException(status_code=500, detail="Invalid AI response")
 
     # زيادة العداد
     if subscription:
