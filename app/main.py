@@ -3,7 +3,6 @@ from app.database.session import Base, engine
 from app.routes.chapter import router as chapter_router
 from app.routes.section import router as section_router
 from app.routes.student import router as student_router
-from app.models import progress
 from app.models import favorite
 from app.routes import progress
 
@@ -45,7 +44,6 @@ app.include_router(subject_router)
 app.include_router(chapter_router)
 app.include_router(section_router)
 app.include_router(student_router)
-app.include_router(progress.router)
 
 @app.get("/")
 def root():
