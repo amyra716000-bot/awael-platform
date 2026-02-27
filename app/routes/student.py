@@ -6,6 +6,7 @@ from app.models.subject import Subject
 from app.models.chapter import Chapter
 from app.models.section import Section
 from app.models.question import Question
+from app.models.favorite import Favorite
 from app.core.security import get_current_user
 from app.core.subscription_checker import check_ai_access
 
