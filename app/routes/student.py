@@ -243,3 +243,51 @@ def get_my_favorites(
     )
 
     return favorites
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from sqlalchemy import func
+from app.database.session import get_db
+from app.models.question import Question
+from app.models.progress import StudentProgress
+from app.core.security import get_current_user
+
+router = APIRouter(prefix="/student", tags=["Student"])
+
+
+@router.get("/progress/{section_id}")
+def get_section_progress(
+    section_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    # كل اسئلة السكشن
+    total_questions = db.query(Question).filter(
+        Question.section_id == section_id
+    ).count()
+
+    # كل تقدم الطالب بهالسكشن
+    progress = db.query(StudentProgress).join(Question).filter(
+        StudentProgress.user_id == current_user.id,
+        Question.section_id == section_id
+    )
+
+    solved_questions = progress.count()
+
+    correct_answers = progress.filter(
+        StudentProgress.is_correct == True
+    ).count()
+
+    wrong_answers = progress.filter(
+        StudentProgress.is_correct == False
+    ).count()
+
+    success_rate = 0
+    if total_questions > 0:
+        success_rate = round((correct_answers / total_questions) * 100, 2)
+
+    return {
+        "total_questions": total_questions,
+        "solved_questions": solved_questions,
+        "correct_answers": correct_answers,
+        "wrong_answers": wrong_answers,
+        "success_rate": success_rate
