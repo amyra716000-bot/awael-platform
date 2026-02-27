@@ -360,3 +360,64 @@ def performance_by_subject(
         })
 
     return result
+# =========================
+# SMART PERFORMANCE ANALYSIS
+# =========================
+@router.get("/smart-analysis")
+def smart_analysis(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    subjects = db.query(Subject).all()
+    weakest_subject = None
+    lowest_rate = 101
+
+    subject_analysis = []
+
+    for subject in subjects:
+        total_questions = (
+            db.query(Question)
+            .join(Section)
+            .join(Chapter)
+            .filter(Chapter.subject_id == subject.id)
+            .count()
+        )
+
+        progress_query = (
+            db.query(StudentProgress)
+            .join(Question)
+            .join(Section)
+            .join(Chapter)
+            .filter(
+                StudentProgress.user_id == current_user.id,
+                Chapter.subject_id == subject.id
+            )
+        )
+
+        correct = progress_query.filter(
+            StudentProgress.is_correct == True
+        ).count()
+
+        success_rate = 0
+        if total_questions > 0:
+            success_rate = round((correct / total_questions) * 100, 2)
+
+        subject_analysis.append({
+            "subject_id": subject.id,
+            "subject_name": subject.name,
+            "success_rate": success_rate
+        })
+
+        if success_rate < lowest_rate:
+            lowest_rate = success_rate
+            weakest_subject = subject.name
+
+    recommendation = None
+    if weakest_subject:
+        recommendation = f"You should focus more on {weakest_subject}"
+
+    return {
+        "analysis": subject_analysis,
+        "weakest_subject": weakest_subject,
+        "recommendation": recommendation
+    }
