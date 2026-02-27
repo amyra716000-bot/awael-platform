@@ -16,13 +16,11 @@ def ask_ai(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    # نجيب المفتاح من Railway
     api_key = os.environ.get("OPENROUTER_API_KEY")
 
     if not api_key:
         raise HTTPException(status_code=500, detail="API key not found")
 
-    # فحص الاشتراك
     subscription, plan = check_ai_access(db, current_user)
 
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -33,7 +31,7 @@ def ask_ai(
     }
 
     data = {
-        "model": "openai/gpt-3.5-turbo",
+        "model": "mistralai/mistral-7b-instruct",  # موديل مجاني ومستقر
         "messages": [
             {"role": "user", "content": question}
         ]
@@ -41,12 +39,20 @@ def ask_ai(
 
     response = requests.post(url, headers=headers, json=data)
 
+    # 🔥 نطبع الرد الكامل حتى نعرف الخطأ الحقيقي
+    print("STATUS CODE:", response.status_code)
+    print("FULL RESPONSE:", response.text)
+
     if response.status_code != 200:
         raise HTTPException(status_code=500, detail=response.text)
 
-    ai_answer = response.json()["choices"][0]["message"]["content"]
+    result = response.json()
 
-    # زيادة العداد
+    if "choices" not in result:
+        raise HTTPException(status_code=500, detail=result)
+
+    ai_answer = result["choices"][0]["message"]["content"]
+
     if subscription:
         subscription.ai_used_today += 1
         remaining = plan.daily_ai_limit - subscription.ai_used_today
