@@ -38,13 +38,13 @@ def ask_ai(
     print("MODEL USED:", "openchat/openchat-3.5-0106:free")
 
     payload = {
-        "model": "openchat/openchat-3.5-0106:free",
-        "messages": [
-            {
-                "role": "user",
-                "content": question
-            }
-        ]
+    "model": "meta-llama/llama-3-8b-instruct:free",
+    "messages": [
+        {
+            "role": "user",
+            "content": question
+        }
+    ]
     }
 
     response = requests.post(
