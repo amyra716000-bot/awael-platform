@@ -5,6 +5,7 @@ from app.routes.section import router as section_router
 from app.routes.student import router as student_router
 from app.models import progress
 from app.models import favorite
+from app.routes import progress
 
 # ✅ استيراد الموديلات (حتى تنشأ الجداول)
 from app.models import (
@@ -44,7 +45,7 @@ app.include_router(subject_router)
 app.include_router(chapter_router)
 app.include_router(section_router)
 app.include_router(student_router)
-
+app.include_router(progress.router)
 
 @app.get("/")
 def root():
