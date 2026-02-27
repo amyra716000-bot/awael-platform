@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from app.database.session import Base, engine
 
 # routers
-from app.routes import auth, stage, setup, plan, subscription
+from app.routes import auth, stage, setup, plan, subscription, ai
 
 # models (فقط لإنشاء الجداول)
 from app.models import user, branch, subject, chapter, section, question
