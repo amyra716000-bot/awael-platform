@@ -4,7 +4,6 @@ from app.routes.chapter import router as chapter_router
 from app.routes.section import router as section_router
 from app.routes.student import router as student_router
 from app.models import favorite
-from app.routes import progress
 
 # ✅ استيراد الموديلات (حتى تنشأ الجداول)
 from app.models import (
