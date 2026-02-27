@@ -9,10 +9,12 @@ router = APIRouter(prefix="/admin/sections", tags=["Admin - Sections"])
 
 
 @router.post("/", dependencies=[Depends(get_current_admin)])
-def create_section(section: SectionCreate, db: Session = Depends(get_db)):
+def create_section(
+    section: SectionCreate,
+    db: Session = Depends(get_db)
+):
     new_section = Section(
         name=section.name,
-        type=section.type,
         chapter_id=section.chapter_id
     )
 
