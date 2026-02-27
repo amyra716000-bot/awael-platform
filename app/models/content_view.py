@@ -9,7 +9,7 @@ class ContentView(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     user_id = Column(Integer, ForeignKey("users.id"))
-    content_id = Column(Integer, ForeignKey("content_items.id"))
+    content_id = Column(Integer, ForeignKey("questions.id"))  # ← هذا التعديل
 
     views_count = Column(Integer, default=0)
     last_viewed_at = Column(DateTime, default=datetime.utcnow)
