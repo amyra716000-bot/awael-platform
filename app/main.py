@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.database.session import Base, engine
 from app.models import content_view
-from app.routes import question
+import app.routes.question as question
 
 # routers
 from app.routes import auth, stage, setup, plan, subscription, ai
