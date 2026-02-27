@@ -1,23 +1,24 @@
 from fastapi import FastAPI
 from app.database.session import Base, engine
-from app.models import content_view
-from app.routes.question import router as question_router
-from app.routes import subject
 
-# routers
-from app.routes import auth, stage, setup, plan, subscription, ai
-
-# models (مهم جداً حتى يتم إنشاء الجداول)
+# ✅ استيراد الموديلات (حتى تنشأ الجداول)
 from app.models import (
     user,
     branch,
-    subject,
+    subject as subject_model,
     chapter,
     section,
     question,
     plan as plan_model,
     subscription as subscription_model,
+    content_view,
 )
+
+# ✅ استيراد الروترات
+from app.routes import auth, stage, setup, plan, subscription, ai
+from app.routes.question import router as question_router
+from app.routes.subject import router as subject_router
+
 
 # إنشاء الجداول
 Base.metadata.create_all(bind=engine)
@@ -34,7 +35,7 @@ app.include_router(plan.router)
 app.include_router(subscription.router)
 app.include_router(ai.router)
 app.include_router(question_router)
-app.include_router(subject.router)
+app.include_router(subject_router)
 
 
 @app.get("/")
