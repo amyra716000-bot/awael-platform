@@ -303,3 +303,60 @@ def student_dashboard(
         "favorites_count": favorites_count,
         "success_rate": success_rate
     }
+# =========================
+# PERFORMANCE BY SUBJECT
+# =========================
+@router.get("/performance-by-subject")
+def performance_by_subject(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    subjects = db.query(Subject).all()
+
+    result = []
+
+    for subject in subjects:
+        total_questions = (
+            db.query(Question)
+            .join(Section)
+            .join(Chapter)
+            .filter(Chapter.subject_id == subject.id)
+            .count()
+        )
+
+        progress_query = (
+            db.query(StudentProgress)
+            .join(Question)
+            .join(Section)
+            .join(Chapter)
+            .filter(
+                StudentProgress.user_id == current_user.id,
+                Chapter.subject_id == subject.id
+            )
+        )
+
+        solved = progress_query.count()
+
+        correct = progress_query.filter(
+            StudentProgress.is_correct == True
+        ).count()
+
+        wrong = progress_query.filter(
+            StudentProgress.is_correct == False
+        ).count()
+
+        success_rate = 0
+        if total_questions > 0:
+            success_rate = round((correct / total_questions) * 100, 2)
+
+        result.append({
+            "subject_id": subject.id,
+            "subject_name": subject.name,
+            "total_questions": total_questions,
+            "solved": solved,
+            "correct": correct,
+            "wrong": wrong,
+            "success_rate": success_rate
+        })
+
+    return result
