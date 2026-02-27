@@ -18,6 +18,7 @@ app.include_router(stage.router)
 app.include_router(setup.router)
 app.include_router(plan.router)
 app.include_router(subscription.router)
+app.include_router(ai.router)
 
 @app.get("/")
 def root():
