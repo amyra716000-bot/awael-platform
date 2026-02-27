@@ -34,6 +34,7 @@ def ask_ai(
         "HTTP-Referer": "https://awael-platform.up.railway.app",
         "X-Title": "Awael Platform"
     }
+print("MODEL USED:", "openchat/openchat-3.5-0106:free")
 
     payload = {
         "model": "openchat/openchat-3.5-0106:free",
