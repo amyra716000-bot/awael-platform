@@ -1,11 +1,11 @@
 from fastapi import FastAPI
 from app.database.session import Base, engine
 
-# استيراد الروترات
+# routers
 from app.routes import auth, stage, setup, plan, subscription
 
-# استيراد المودلز حتى تنشئ الجداول
-from app.models import user, branch, subject, chapter, section, question, subscription
+# models (فقط لإنشاء الجداول)
+from app.models import user, branch, subject, chapter, section, question
 
 Base.metadata.create_all(bind=engine)
 
@@ -13,7 +13,6 @@ app = FastAPI(
     title="Awael Platform",
 )
 
-# إضافة الروترات
 app.include_router(auth.router)
 app.include_router(stage.router)
 app.include_router(setup.router)
