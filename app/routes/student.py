@@ -1,12 +1,15 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from app.database.session import get_db
+
 from app.models.stage import Stage
 from app.models.subject import Subject
 from app.models.chapter import Chapter
 from app.models.section import Section
 from app.models.question import Question
 from app.models.favorite import Favorite
+from app.models.progress import StudentProgress
+
 from app.core.security import get_current_user
 from app.core.subscription_checker import check_ai_access
 
@@ -81,14 +84,12 @@ def get_questions(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    # 🔒 فحص الاشتراك
     check_ai_access(db, current_user)
 
     query = db.query(Question).filter(
         Question.section_id == section_id
     )
 
-    # ===== Filters =====
     if is_ministry is not None:
         query = query.filter(Question.is_ministry == is_ministry)
 
@@ -113,16 +114,17 @@ def get_questions(
         "total": total,
         "data": questions
     }
-from app.models.progress import StudentProgress
 
 
+# =========================
+# MARK QUESTION COMPLETED
+# =========================
 @router.post("/complete/{question_id}")
 def mark_question_completed(
     question_id: int,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    # نتأكد السؤال موجود
     question = db.query(Question).filter(
         Question.id == question_id
     ).first()
@@ -130,7 +132,6 @@ def mark_question_completed(
     if not question:
         return {"error": "Question not found"}
 
-    # نشوف إذا مسجل سابقاً
     existing = db.query(StudentProgress).filter(
         StudentProgress.user_id == current_user.id,
         StudentProgress.question_id == question_id
@@ -149,6 +150,11 @@ def mark_question_completed(
     db.commit()
 
     return {"message": "Question marked as completed"}
+
+
+# =========================
+# GET PROGRESS
+# =========================
 @router.get("/progress/{section_id}")
 def get_progress(
     section_id: int,
@@ -173,3 +179,67 @@ def get_progress(
         "completed": completed,
         "progress_percentage": round(percentage, 2)
     }
+
+
+# =========================
+# FAVORITES
+# =========================
+
+@router.post("/favorite/{question_id}")
+def add_favorite(
+    question_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    existing = db.query(Favorite).filter(
+        Favorite.user_id == current_user.id,
+        Favorite.question_id == question_id
+    ).first()
+
+    if existing:
+        return {"message": "Already in favorites"}
+
+    favorite = Favorite(
+        user_id=current_user.id,
+        question_id=question_id
+    )
+
+    db.add(favorite)
+    db.commit()
+
+    return {"message": "Added to favorites"}
+
+
+@router.delete("/favorite/{question_id}")
+def remove_favorite(
+    question_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    favorite = db.query(Favorite).filter(
+        Favorite.user_id == current_user.id,
+        Favorite.question_id == question_id
+    ).first()
+
+    if not favorite:
+        return {"message": "Not in favorites"}
+
+    db.delete(favorite)
+    db.commit()
+
+    return {"message": "Removed from favorites"}
+
+
+@router.get("/favorites")
+def get_my_favorites(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    favorites = (
+        db.query(Question)
+        .join(Favorite, Favorite.question_id == Question.id)
+        .filter(Favorite.user_id == current_user.id)
+        .all()
+    )
+
+    return favorites
