@@ -4,21 +4,33 @@ from app.database.session import Base, engine
 # routers
 from app.routes import auth, stage, setup, plan, subscription, ai
 
-# models (فقط لإنشاء الجداول)
-from app.models import user, branch, subject, chapter, section, question
+# models (مهم جداً حتى يتم إنشاء الجداول)
+from app.models import (
+    user,
+    branch,
+    subject,
+    chapter,
+    section,
+    question,
+    plan as plan_model,
+    subscription as subscription_model,
+)
 
+# إنشاء الجداول
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Awael Platform",
 )
 
+# تسجيل الروترات
 app.include_router(auth.router)
 app.include_router(stage.router)
 app.include_router(setup.router)
 app.include_router(plan.router)
 app.include_router(subscription.router)
 app.include_router(ai.router)
+
 
 @app.get("/")
 def root():
