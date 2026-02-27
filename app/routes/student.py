@@ -112,3 +112,39 @@ def get_questions(
         "total": total,
         "data": questions
     }
+from app.models.progress import StudentProgress
+
+
+@router.post("/complete/{question_id}")
+def mark_question_completed(
+    question_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    # نتأكد السؤال موجود
+    question = db.query(Question).filter(
+        Question.id == question_id
+    ).first()
+
+    if not question:
+        return {"error": "Question not found"}
+
+    # نشوف إذا مسجل سابقاً
+    existing = db.query(StudentProgress).filter(
+        StudentProgress.user_id == current_user.id,
+        StudentProgress.question_id == question_id
+    ).first()
+
+    if existing:
+        return {"message": "Already completed"}
+
+    progress = StudentProgress(
+        user_id=current_user.id,
+        question_id=question_id,
+        is_completed=True
+    )
+
+    db.add(progress)
+    db.commit()
+
+    return {"message": "Question marked as completed"}
