@@ -6,3 +6,4 @@ from .chapter import Chapter
 from .section import Section
 from .question import Question
 from .plan import Plan
+from . import content_view
