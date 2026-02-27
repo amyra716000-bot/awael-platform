@@ -257,3 +257,49 @@ def get_my_favorites(
     )
 
     return favorites
+# =========================
+# STUDENT DASHBOARD
+# =========================
+@router.get("/dashboard")
+def student_dashboard(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    total_subjects = db.query(Subject).count()
+    total_chapters = db.query(Chapter).count()
+    total_sections = db.query(Section).count()
+    total_questions = db.query(Question).count()
+
+    solved_questions = db.query(StudentProgress).filter(
+        StudentProgress.user_id == current_user.id
+    ).count()
+
+    correct_answers = db.query(StudentProgress).filter(
+        StudentProgress.user_id == current_user.id,
+        StudentProgress.is_correct == True
+    ).count()
+
+    wrong_answers = db.query(StudentProgress).filter(
+        StudentProgress.user_id == current_user.id,
+        StudentProgress.is_correct == False
+    ).count()
+
+    favorites_count = db.query(Favorite).filter(
+        Favorite.user_id == current_user.id
+    ).count()
+
+    success_rate = 0
+    if total_questions > 0:
+        success_rate = round((correct_answers / total_questions) * 100, 2)
+
+    return {
+        "total_subjects": total_subjects,
+        "total_chapters": total_chapters,
+        "total_sections": total_sections,
+        "total_questions": total_questions,
+        "solved_questions": solved_questions,
+        "correct_answers": correct_answers,
+        "wrong_answers": wrong_answers,
+        "favorites_count": favorites_count,
+        "success_rate": success_rate
+    }
