@@ -1,6 +1,4 @@
-import os
-import requests
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db
@@ -17,53 +15,11 @@ def ask_ai(
     current_user=Depends(get_current_user)
 ):
 
-    api_key = os.getenv("OPENROUTER_API_KEY")
-
-    if not api_key:
-        raise HTTPException(status_code=500, detail="OpenRouter API key not found")
-
     # فحص الاشتراك
     subscription, plan = check_ai_access(db, current_user)
 
-    url = "https://openrouter.ai/api/v1/chat/completions"
-
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://awael-platform-production-6101.up.railway.app",
-        "X-Title": "Awael Platform"
-    }
-
-    payload = {
-        "model": "mistralai/mistral-7b-instruct:free",
-        "messages": [
-            {
-                "role": "user",
-                "content": question
-            }
-        ],
-        "temperature": 0.7
-    }
-
-    try:
-        response = requests.post(
-            url,
-            headers=headers,
-            json=payload,
-            timeout=30
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-    if response.status_code != 200:
-        raise HTTPException(status_code=500, detail=response.text)
-
-    result = response.json()
-
-    try:
-        ai_answer = result["choices"][0]["message"]["content"]
-    except:
-        raise HTTPException(status_code=500, detail="Invalid AI response")
+    # رد تجريبي مؤقت
+    ai_answer = f"🤖 AI (Mock Mode): سؤالك كان: {question}"
 
     # زيادة العداد
     if subscription:
@@ -78,5 +34,6 @@ def ask_ai(
     return {
         "question": question,
         "answer": ai_answer,
-        "remaining_today": remaining
+        "remaining_today": remaining,
+        "mode": "mock"
     }
