@@ -19,6 +19,8 @@ def ask_ai(
 ):
     api_key = os.getenv("OPENROUTER_API_KEY")
 
+    print("API KEY VALUE:", api_key)
+
     if not api_key:
         raise HTTPException(status_code=500, detail="API key not found")
 
