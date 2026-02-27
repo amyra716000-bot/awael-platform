@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from app.database.session import Base, engine
 from app.models import content_view
 from app.routes.question import router as question_router
+from app.routes import subject
 
 # routers
 from app.routes import auth, stage, setup, plan, subscription, ai
@@ -33,6 +34,7 @@ app.include_router(plan.router)
 app.include_router(subscription.router)
 app.include_router(ai.router)
 app.include_router(question_router)
+app.include_router(subject.router)
 
 
 @app.get("/")
