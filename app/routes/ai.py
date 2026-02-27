@@ -1,15 +1,3 @@
-import os
-import requests
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from app.database.session import get_db
-from app.core.security import get_current_user
-from app.core.subscription_checker import check_ai_access
-
-router = APIRouter(prefix="/ai", tags=["AI"])
-
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
-
 @router.post("/ask")
 def ask_ai(
     question: str,
@@ -17,7 +5,9 @@ def ask_ai(
     current_user=Depends(get_current_user)
 ):
 
-    if not OPENROUTER_API_KEY:
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+
+    if not api_key:
         raise HTTPException(status_code=500, detail="API key not found")
 
     subscription, plan = check_ai_access(db, current_user)
@@ -25,9 +15,7 @@ def ask_ai(
     url = "https://openrouter.ai/api/v1/chat/completions"
 
     headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "HTTP-Referer": "https://01.up.railway.app",
-        "X-Title": "Awael Platform",
+        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
 
