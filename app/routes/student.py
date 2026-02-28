@@ -486,3 +486,47 @@ def start_exam(
             for q in selected_questions
         ]
     }
+from app.schemas.student import SubmitAnswer
+from app.models.question import Question
+from app.models.progress import StudentProgress
+
+@router.post("/submit-answer/{question_id}")
+def submit_answer(
+    question_id: int,
+    payload: SubmitAnswer,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    question = db.query(Question).filter(
+        Question.id == question_id
+    ).first()
+
+    if not question:
+        return {"error": "Question not found"}
+
+    # مقارنة الجواب
+    is_correct = payload.answer.strip() == question.answer.strip()
+
+    # هل الطالب حل السؤال قبل؟
+    existing = db.query(StudentProgress).filter(
+        StudentProgress.user_id == current_user.id,
+        StudentProgress.question_id == question_id
+    ).first()
+
+    if existing:
+        existing.is_correct = is_correct
+    else:
+        progress = StudentProgress(
+            user_id=current_user.id,
+            question_id=question_id,
+            is_completed=True,
+            is_correct=is_correct
+        )
+        db.add(progress)
+
+    db.commit()
+
+    return {
+        "correct": is_correct,
+        "correct_answer": question.answer
+    }
