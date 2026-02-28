@@ -16,3 +16,4 @@ from .progress import StudentProgress
 from .favorite import Favorite
 from .content_view import ContentView
 from .monthly_reset import MonthlyReset
+from .question_type import QuestionType
