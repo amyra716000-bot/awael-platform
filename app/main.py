@@ -10,8 +10,7 @@ from app.models import exam_attempt_question
 from app.models import leaderboard
 from app.models import question_statistics
 from app.models import device_session
-from fastapi import BackgroundTasks
-from app.services.ranking_service import update_leaderboard_for_user
+from app.ranking_service import update_leaderboard_for_user
 
 # ✅ استيراد الموديلات (حتى تنشأ الجداول)
 from app.models import (
