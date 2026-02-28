@@ -11,6 +11,8 @@ from app.models import leaderboard
 from app.models import question_statistics
 from app.models import device_session
 from app.ranking_service import update_leaderboard_for_user
+from app.routes import exam
+app.include_router(exam.router)
 
 # ✅ استيراد الموديلات (حتى تنشأ الجداول)
 from app.models import (
