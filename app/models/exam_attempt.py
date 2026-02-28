@@ -35,3 +35,7 @@ class ExamAttempt(Base):
 
     template = relationship("ExamTemplate")
     user = relationship("User")
+anti_cheat_flag = Column(Boolean, default=False)
+device_fingerprint = Column(String, nullable=True)
+
+leaderboard_processed = Column(Boolean, default=False)
