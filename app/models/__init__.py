@@ -7,6 +7,6 @@ from .section import Section
 from .question import Question
 from .plan import Plan
 from . import content_view
-from . import exam
+from . import exam_template
 from . import exam_attempt
-from . import exam_question
+from . import exam_attempt_question
