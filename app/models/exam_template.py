@@ -34,3 +34,11 @@ class ExamTemplate(Base):
     stage = relationship("Stage")
     subject = relationship("Subject")
     section = relationship("Section")
+attempt_limit = Column(Integer, default=1)
+is_paid = Column(Boolean, default=True)
+
+randomize_questions = Column(Boolean, default=True)
+randomize_options = Column(Boolean, default=True)
+
+leaderboard_enabled = Column(Boolean, default=True)
+show_answers_after_finish = Column(Boolean, default=False)
