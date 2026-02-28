@@ -1,4 +1,11 @@
 from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/")
+def root():
+    return {"status": "ok"}
+    
 from app.database.session import engine, Base
 
 # ✅ استيراد كل الموديلات حتى تنشأ الجداول
