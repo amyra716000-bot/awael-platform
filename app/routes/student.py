@@ -412,7 +412,7 @@ def smart_analysis(
         "recommendation": recommendation
     }
 import random
-from app.models.exam import Exam
+from app.models.exam import ExamTemplate
 from app.models.exam_attempt import ExamAttempt
 from app.models.exam_question import ExamQuestion
 
