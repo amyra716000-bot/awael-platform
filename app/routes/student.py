@@ -418,7 +418,7 @@ from app.models.exam_question import ExamQuestion
 
 
 # =========================
-# START EXAM
+# START EXAMTEMPlATE
 # =========================
 @router.post("/start-exam/{section_id}")
 def start_exam(
@@ -436,8 +436,8 @@ def start_exam(
 
     selected_questions = random.sample(questions, question_count)
 
-    # إنشاء Exam
-    exam = Exam(
+    # إنشاء EXAMTEMPlATE
+    exam = ExamTemplate(
         section_id=section_id,
         total_questions=question_count,
         duration_minutes=30
