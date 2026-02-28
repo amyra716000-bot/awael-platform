@@ -12,7 +12,7 @@ from .exam_attempt import ExamAttempt
 from .exam_attempt_question import ExamAttemptQuestion
 from .leaderboard import Leaderboard
 from .question_statistics import QuestionStatistics
-from .progress import Progress
+from .progress import StudentProgress
 from .favorite import Favorite
 from .content_view import ContentView
 from .monthly_reset import MonthlyReset
