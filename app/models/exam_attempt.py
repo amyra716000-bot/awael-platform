@@ -9,14 +9,17 @@ class ExamAttempt(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    exam_id = Column(Integer, ForeignKey("exams.id"))
-    user_id = Column(Integer, ForeignKey("users.id"))
+    template_id = Column(Integer, ForeignKey("exam_templates.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     started_at = Column(DateTime, default=datetime.utcnow)
     finished_at = Column(DateTime, nullable=True)
 
     score = Column(Integer, default=0)
+    correct_answers = Column(Integer, default=0)
+    total_questions = Column(Integer, nullable=False)
+
     is_completed = Column(Boolean, default=False)
 
-    exam = relationship("Exam")
+    template = relationship("ExamTemplate")
     user = relationship("User")
