@@ -4,9 +4,9 @@ from app.routes.chapter import router as chapter_router
 from app.routes.section import router as section_router
 from app.routes.student import router as student_router
 from app.models import favorite
-from app.models import exam
+from app.models import exam_template
 from app.models import exam_attempt
-from app.models import exam_question
+from app.models import exam_attempt_question
 
 # ✅ استيراد الموديلات (حتى تنشأ الجداول)
 from app.models import (
