@@ -7,6 +7,9 @@ from app.models import favorite
 from app.models import exam_template
 from app.models import exam_attempt
 from app.models import exam_attempt_question
+from app.models import leaderboard
+from app.models import question_statistics
+from app.models import device_session
 
 # ✅ استيراد الموديلات (حتى تنشأ الجداول)
 from app.models import (
