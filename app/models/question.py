@@ -29,7 +29,7 @@ class Question(Base):
         back_populates="questions"
     )
 
-    # 🔹 علاقة One-to-Many مع Type
+    # 🔹 علاقة مع QuestionType
     type = relationship(
         "QuestionType",
         back_populates="questions"
