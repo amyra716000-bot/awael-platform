@@ -116,16 +116,6 @@ def get_questions(
     }
 
 
-# =========================
-# SOLVE QUESTION (with correctness)
-# =========================
-@router.post("/solve/{question_id}")
-def solve_question(
-    question_id: int,
-    is_correct: bool,
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
-):
     question = db.query(Question).filter(
         Question.id == question_id
     ).first()
