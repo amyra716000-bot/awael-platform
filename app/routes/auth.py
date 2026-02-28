@@ -36,3 +36,13 @@ def login(
         "access_token": access_token,
         "token_type": "bearer"
     }
+@router.post("/make-admin")
+def make_admin(email: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        return {"error": "User not found"}
+
+    user.role = "admin"
+    db.commit()
+
+    return {"message": "User promoted to admin"}
