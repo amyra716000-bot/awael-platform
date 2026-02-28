@@ -19,7 +19,6 @@ from app.models import (
     exam_attempt_question,
     leaderboard,
     question_statistics,
-    progress,
     favorite,
     content_view,
 )
