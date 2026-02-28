@@ -10,3 +10,8 @@ from . import content_view
 from . import exam_template
 from . import exam_attempt
 from . import exam_attempt_question
+from .leaderboard import Leaderboard
+from .question_statistics import QuestionStatistics
+from .exam_template import ExamTemplate
+from .exam_attempt import ExamAttempt
+from .exam_attempt_question import ExamAttemptQuestion
