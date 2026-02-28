@@ -37,6 +37,18 @@ def start_exam(
 
     if not template:
         raise HTTPException(status_code=404, detail="Exam template not found")
+        # 🚫 منع وجود محاولة غير مكتملة
+unfinished_attempt = db.query(ExamAttempt).filter(
+    ExamAttempt.user_id == current_user.id,
+    ExamAttempt.template_id == template.id,
+    ExamAttempt.is_completed == False
+).first()
+
+if unfinished_attempt:
+    raise HTTPException(
+        status_code=400,
+        detail="You already have an unfinished exam attempt"
+    )
 
     # 🔒 منع التكرار حسب النوع
     today = date.today()
