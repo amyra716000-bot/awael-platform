@@ -6,12 +6,10 @@ from .chapter import Chapter
 from .section import Section
 from .question import Question
 from .plan import Plan
-from . import content_view
-from . import exam_template
-from . import exam_attempt
-from . import exam_attempt_question
-from .leaderboard import Leaderboard
-from .question_statistics import QuestionStatistics
+from .content_view import ContentView
+
 from .exam_template import ExamTemplate
 from .exam_attempt import ExamAttempt
 from .exam_attempt_question import ExamAttemptQuestion
+from .leaderboard import Leaderboard
+from .question_statistics import QuestionStatistics
