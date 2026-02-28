@@ -1,17 +1,44 @@
 from fastapi import FastAPI
-
-app = FastAPI()
-
-@app.get("/")
-def root():
-    return {"status": "ok"}
-    
 from app.database.session import engine, Base
 
-# ✅ استيراد كل الموديلات حتى تنشأ الجداول
+# =========================
+# Create App
+# =========================
+app = FastAPI(
+    title="Awael Platform API",
+    version="1.0.0"
+)
+
+# =========================
+# Health Check
+# =========================
+@app.get("/")
+def root():
+    return {
+        "status": "running",
+        "platform": "Awael Platform",
+        "version": "1.0.0"
+    }
+
+@app.get("/health")
+def health():
+    return {"status": "healthy"}
+
+
+# =========================
+# Import Models (حتى تنشأ الجداول)
+# =========================
 from app import models
 
-# ✅ استيراد كل الروترات
+# =========================
+# Create Tables
+# =========================
+Base.metadata.create_all(bind=engine)
+
+
+# =========================
+# Import Routers
+# =========================
 from app.routes import (
     auth,
     stage,
@@ -21,21 +48,12 @@ from app.routes import (
     ai,
     exam,
 )
+
 from app.routes.question import router as question_router
 from app.routes.subject import router as subject_router
 from app.routes.chapter import router as chapter_router
 from app.routes.section import router as section_router
 from app.routes.student import router as student_router
-
-
-# إنشاء التطبيق
-app = FastAPI(
-    title="Awael Platform API",
-    version="1.0.0"
-)
-
-# إنشاء الجداول
-Base.metadata.create_all(bind=engine)
 
 
 # =========================
@@ -54,18 +72,3 @@ app.include_router(subject_router)
 app.include_router(chapter_router)
 app.include_router(section_router)
 app.include_router(student_router)
-
-
-@app.get("/")
-def root():
-    return {
-        "status": "running",
-        "platform": "Awael Platform",
-        "version": "1.0.0"
-    }
-import os
-import uvicorn
-
-if __name__ == "__main__":
-    port = int(os.getenv("PORT", 8000))
-    uvicorn.run("app.main:app", host="0.0.0.0", port=port)
