@@ -4,6 +4,8 @@ from sqlalchemy import func
 from datetime import datetime
 import random
 import json
+from fastapi import BackgroundTasks
+from app.ranking_service import update_leaderboard_for_user
 
 from app.database.session import get_db
 from app.core.security import get_current_user
@@ -158,6 +160,7 @@ def submit_answer(attempt_id: int, question_id: int,
 
 @router.post("/finish-exam/{attempt_id}")
 def finish_exam(attempt_id: int,
+                background_tasks: BackgroundTasks,
                 db: Session = Depends(get_db),
                 current_user: User = Depends(get_current_user)):
 
@@ -211,6 +214,8 @@ def finish_exam(attempt_id: int,
     attempt.finished_at = datetime.utcnow()
 
     db.commit()
+
+                    background_tasks.add_task(update_leaderboard_for_user, db, current_user.id)
 
     return {
         "percentage": percentage,
