@@ -13,7 +13,7 @@ class StudentProgress(Base):
     question_id = Column(Integer, ForeignKey("questions.id"), nullable=False)
 
     is_completed = Column(Boolean, default=True)
-    is_correct = Column(Boolean, nullable=False)
+    is_correct = Column(Boolean, nullable=False, default=False)
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
