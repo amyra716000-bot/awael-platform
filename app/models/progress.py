@@ -3,8 +3,8 @@ from sqlalchemy.orm import relationship
 from app.database.session import Base
 
 
-class Progress(Base):
-    __tablename__ = "progress"
+class StudentProgress(Base):
+    __tablename__ = "student_progress"
 
     id = Column(Integer, primary_key=True, index=True)
 
