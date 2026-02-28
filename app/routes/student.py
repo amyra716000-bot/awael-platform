@@ -421,3 +421,68 @@ def smart_analysis(
         "weakest_subject": weakest_subject,
         "recommendation": recommendation
     }
+import random
+from app.models.exam import Exam
+from app.models.exam_attempt import ExamAttempt
+from app.models.exam_question import ExamQuestion
+
+
+# =========================
+# START EXAM
+# =========================
+@router.post("/start-exam/{section_id}")
+def start_exam(
+    section_id: int,
+    question_count: int = 10,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    questions = db.query(Question).filter(
+        Question.section_id == section_id
+    ).all()
+
+    if len(questions) < question_count:
+        return {"error": "Not enough questions in this section"}
+
+    selected_questions = random.sample(questions, question_count)
+
+    # إنشاء Exam
+    exam = Exam(
+        section_id=section_id,
+        total_questions=question_count,
+        duration_minutes=30
+    )
+    db.add(exam)
+    db.commit()
+    db.refresh(exam)
+
+    # إنشاء Attempt
+    attempt = ExamAttempt(
+        exam_id=exam.id,
+        user_id=current_user.id
+    )
+    db.add(attempt)
+    db.commit()
+    db.refresh(attempt)
+
+    # ربط الأسئلة بالمحاولة
+    for q in selected_questions:
+        eq = ExamQuestion(
+            exam_attempt_id=attempt.id,
+            question_id=q.id
+        )
+        db.add(eq)
+
+    db.commit()
+
+    return {
+        "exam_attempt_id": attempt.id,
+        "duration_minutes": exam.duration_minutes,
+        "questions": [
+            {
+                "question_id": q.id,
+                "content": q.content
+            }
+            for q in selected_questions
+        ]
+    }
