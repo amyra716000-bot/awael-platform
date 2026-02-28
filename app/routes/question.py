@@ -11,17 +11,21 @@ router = APIRouter(prefix="/questions", tags=["Questions"])
 # 🔹 إنشاء سؤال (Admin فقط)
 @router.post("/", dependencies=[Depends(get_current_admin)])
 def create_question(question: QuestionCreate, db: Session = Depends(get_db)):
+
     new_question = Question(
         content=question.content,
         answer=question.answer,
         section_id=question.section_id,
+        type_id=question.type_id,   # 🔥 هذا كان ناقص
         is_ministry=question.is_ministry,
         ministry_year=question.ministry_year,
         is_important=question.is_important,
     )
+
     db.add(new_question)
     db.commit()
     db.refresh(new_question)
+
     return new_question
 
 
