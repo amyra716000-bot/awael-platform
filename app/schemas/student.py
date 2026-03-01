@@ -1,6 +1,10 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import List, Optional
 
+
+# =========================
+# BASIC ENTITIES
+# =========================
 
 class StageOut(BaseModel):
     id: int
@@ -44,3 +48,29 @@ class QuestionOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# =========================
+# PROGRESS
+# =========================
+
+class SolveResponse(BaseModel):
+    message: str
+    total_attempts: int
+    correct_answers: int
+
+
+class SectionProgressResponse(BaseModel):
+    section_id: int
+    total_attempts: int
+    correct_answers: int
+    success_rate: int
+
+
+class DashboardResponse(BaseModel):
+    total_attempts: int
+    total_correct: int
+    overall_success_rate: int
+    sections_count: int
+    strongest_section: Optional[int]
+    weakest_section: Optional[int]
