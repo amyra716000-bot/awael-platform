@@ -94,3 +94,54 @@ def get_section_progress(
         "correct_answers": progress.correct_answers,
         "success_rate": success_rate
     }
+# =========================
+# STUDENT DASHBOARD
+# =========================
+@router.get("/dashboard")
+def student_dashboard(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
+    progresses = db.query(StudentProgress).filter(
+        StudentProgress.user_id == current_user.id
+    ).all()
+
+    if not progresses:
+        return {
+            "total_attempts": 0,
+            "total_correct": 0,
+            "overall_success_rate": 0,
+            "sections_count": 0,
+            "strongest_section": None,
+            "weakest_section": None
+        }
+
+    total_attempts = sum(p.total_attempts for p in progresses)
+    total_correct = sum(p.correct_answers for p in progresses)
+
+    overall_success_rate = (
+        int((total_correct / total_attempts) * 100)
+        if total_attempts > 0 else 0
+    )
+
+    strongest = max(
+        progresses,
+        key=lambda p: (p.correct_answers / p.total_attempts)
+        if p.total_attempts > 0 else 0
+    )
+
+    weakest = min(
+        progresses,
+        key=lambda p: (p.correct_answers / p.total_attempts)
+        if p.total_attempts > 0 else 0
+    )
+
+    return {
+        "total_attempts": total_attempts,
+        "total_correct": total_correct,
+        "overall_success_rate": overall_success_rate,
+        "sections_count": len(progresses),
+        "strongest_section": strongest.section_id,
+        "weakest_section": weakest.section_id
+    }
