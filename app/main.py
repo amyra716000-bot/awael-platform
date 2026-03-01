@@ -1,8 +1,5 @@
 from fastapi import FastAPI
 from app.database.session import engine, Base
-from app import admin_exam_templates
-
-app.include_router(admin_exam_templates.router)
 
 # =========================
 # Create App
@@ -58,6 +55,9 @@ from app.routes.chapter import router as chapter_router
 from app.routes.section import router as section_router
 from app.routes.student import router as student_router
 
+# 👇 هذا الجديد
+from app.admin_exam_templates import router as admin_exam_templates_router
+
 
 # =========================
 # Register Routers
@@ -75,3 +75,6 @@ app.include_router(subject_router)
 app.include_router(chapter_router)
 app.include_router(section_router)
 app.include_router(student_router)
+
+# 👇 تسجيل راوتر الامتحانات الادمن
+app.include_router(admin_exam_templates_router)
