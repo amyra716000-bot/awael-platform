@@ -23,6 +23,18 @@ def start_exam_attempt(
     if not template:
         return None
 
+    # تأكد القسم موجود
+    if not template.section_id:
+        raise Exception("Exam template has no section assigned")
+
+    # تأكد يوجد أسئلة بالقسم
+    question_count = db.query(Question).filter(
+        Question.section_id == template.section_id
+    ).count()
+
+    if question_count == 0:
+        raise Exception("No questions found for this section")
+
     # إنشاء محاولة جديدة
     attempt = ExamAttempt(
         user_id=user_id,
@@ -45,7 +57,7 @@ def start_exam_attempt(
         db.query(Question)
         .filter(Question.section_id == template.section_id)
         .order_by(func.random())
-        .limit(template.total_questions)
+        .limit(min(template.total_questions, question_count))
         .all()
     )
 
