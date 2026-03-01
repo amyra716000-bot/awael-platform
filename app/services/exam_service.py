@@ -119,3 +119,42 @@ def start_exam_attempt(
             status_code=500,
             detail=f"Unexpected error while starting exam: {str(e)}"
                                )
+# ==========================================
+# FINISH EXAM ATTEMPT
+# ==========================================
+def finish_exam_attempt(
+    db,
+    attempt
+):
+    try:
+        from datetime import datetime
+        from app.models.exam_attempt_question import ExamAttemptQuestion
+
+        attempt.finished_at = datetime.utcnow()
+        attempt.status = AttemptStatus.finished
+
+        correct_answers = db.query(ExamAttemptQuestion).filter(
+            ExamAttemptQuestion.exam_attempt_id == attempt.id,
+            ExamAttemptQuestion.is_correct == True
+        ).count()
+
+        total_questions = db.query(ExamAttemptQuestion).filter(
+            ExamAttemptQuestion.exam_attempt_id == attempt.id
+        ).count()
+
+        attempt.correct_answers = correct_answers
+        attempt.total_degree = total_questions
+
+        if total_questions > 0:
+            attempt.percentage = int((correct_answers / total_questions) * 100)
+        else:
+            attempt.percentage = 0
+
+        db.commit()
+        db.refresh(attempt)
+
+        return attempt
+
+    except Exception:
+        db.rollback()
+        raise
