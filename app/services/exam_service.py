@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 from datetime import datetime
-import random
 
 from app.models.exam_template import ExamTemplate
-from app.models.exam_attempt import ExamAttempt
+from app.models.exam_attempt import ExamAttempt, AttemptStatus
 from app.models.exam_attempt_question import ExamAttemptQuestion
 from app.models.question import Question
 
@@ -21,37 +21,35 @@ def start_exam_attempt(
     ).first()
 
     if not template:
-        raise Exception("Exam template not found")
+        return None
 
-    # إنشاء محاولة
+    # إنشاء محاولة جديدة
     attempt = ExamAttempt(
         user_id=user_id,
         template_id=template.id,
+        status=AttemptStatus.in_progress,
         started_at=datetime.utcnow(),
-        is_completed=False,
-        score=0
+        total_degree=0,
+        correct_answers=0,
+        wrong_answers=0,
+        skipped_answers=0,
+        percentage=0,
     )
 
     db.add(attempt)
     db.commit()
     db.refresh(attempt)
 
-    # جلب كل أسئلة القسم
-    all_questions = db.query(Question).filter(
-        Question.section_id == template.section_id
-    ).all()
-
-    # فحص وجود أسئلة كافية
-    if len(all_questions) < template.total_questions:
-        raise Exception("Not enough questions in this section")
-
-    # اختيار عشوائي من بايثون (أضمن من func.random)
-    selected_questions = random.sample(
-        all_questions,
-        template.total_questions
+    # جلب أسئلة عشوائية حسب القسم
+    questions = (
+        db.query(Question)
+        .filter(Question.section_id == template.section_id)
+        .order_by(func.random())
+        .limit(template.total_questions)
+        .all()
     )
 
-    for q in selected_questions:
+    for q in questions:
         exam_question = ExamAttemptQuestion(
             exam_attempt_id=attempt.id,
             question_id=q.id,
@@ -72,14 +70,24 @@ def finish_exam_attempt(
     attempt: ExamAttempt
 ):
     attempt.finished_at = datetime.utcnow()
-    attempt.is_completed = True
+    attempt.status = AttemptStatus.finished
 
     correct_answers = db.query(ExamAttemptQuestion).filter(
         ExamAttemptQuestion.exam_attempt_id == attempt.id,
         ExamAttemptQuestion.is_correct == True
     ).count()
 
-    attempt.score = correct_answers
+    total_questions = db.query(ExamAttemptQuestion).filter(
+        ExamAttemptQuestion.exam_attempt_id == attempt.id
+    ).count()
+
+    attempt.correct_answers = correct_answers
+    attempt.total_degree = total_questions
+
+    if total_questions > 0:
+        attempt.percentage = int((correct_answers / total_questions) * 100)
+    else:
+        attempt.percentage = 0
 
     db.commit()
     db.refresh(attempt)
