@@ -1,57 +1,97 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List, Optional
-from pydantic import BaseModel
+from typing import List
 
 from app.database.session import get_db
 from app.core.security import get_current_user
 from app.models.user import User
+from app.models.stage import Stage
+from app.models.subject import Subject
+from app.models.chapter import Chapter
+from app.models.section import Section
 from app.models.question import Question
 from app.models.progress import StudentProgress
 
+from app.schemas.student import (
+    StageOut,
+    SubjectOut,
+    ChapterOut,
+    SectionOut,
+    QuestionOut,
+    SolveResponse,
+    SectionProgressResponse,
+    DashboardResponse
+)
 
 router = APIRouter(prefix="/student", tags=["Student"])
 
 
 # =========================
-# RESPONSE SCHEMAS
+# GET STAGES
 # =========================
-
-class SolveResponse(BaseModel):
-    message: str
-    total_attempts: int
-    correct_answers: int
-
-
-class SectionProgressResponse(BaseModel):
-    section_id: int
-    total_attempts: int
-    correct_answers: int
-    success_rate: int
-
-
-class DashboardResponse(BaseModel):
-    total_attempts: int
-    total_correct: int
-    overall_success_rate: int
-    sections_count: int
-    strongest_section: Optional[int]
-    weakest_section: Optional[int]
+@router.get("/stages", response_model=List[StageOut])
+def get_stages(db: Session = Depends(get_db),
+               current_user: User = Depends(get_current_user)):
+    return db.query(Stage).all()
 
 
 # =========================
-# SOLVE QUESTION (Progress)
+# GET SUBJECTS
 # =========================
+@router.get("/subjects/{stage_id}", response_model=List[SubjectOut])
+def get_subjects(stage_id: int,
+                 db: Session = Depends(get_db),
+                 current_user: User = Depends(get_current_user)):
+    return db.query(Subject).filter(
+        Subject.stage_id == stage_id
+    ).all()
 
+
+# =========================
+# GET CHAPTERS
+# =========================
+@router.get("/chapters/{subject_id}", response_model=List[ChapterOut])
+def get_chapters(subject_id: int,
+                 db: Session = Depends(get_db),
+                 current_user: User = Depends(get_current_user)):
+    return db.query(Chapter).filter(
+        Chapter.subject_id == subject_id
+    ).all()
+
+
+# =========================
+# GET SECTIONS
+# =========================
+@router.get("/sections/{chapter_id}", response_model=List[SectionOut])
+def get_sections(chapter_id: int,
+                 db: Session = Depends(get_db),
+                 current_user: User = Depends(get_current_user)):
+    return db.query(Section).filter(
+        Section.chapter_id == chapter_id
+    ).all()
+
+
+# =========================
+# GET QUESTIONS
+# =========================
+@router.get("/questions/{section_id}", response_model=List[QuestionOut])
+def get_questions(section_id: int,
+                  db: Session = Depends(get_db),
+                  current_user: User = Depends(get_current_user)):
+    return db.query(Question).filter(
+        Question.section_id == section_id
+    ).all()
+
+
+# =========================
+# SOLVE QUESTION
+# =========================
 @router.post("/solve/{question_id}", response_model=SolveResponse)
-def solve_question(
-    question_id: int,
-    is_correct: bool,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
+def solve_question(question_id: int,
+                   is_correct: bool,
+                   db: Session = Depends(get_db),
+                   current_user: User = Depends(get_current_user)):
 
-    # 1️⃣ التأكد من وجود السؤال
     question = db.query(Question).filter(
         Question.id == question_id
     ).first()
@@ -59,13 +99,11 @@ def solve_question(
     if question is None:
         raise HTTPException(status_code=404, detail="Question not found")
 
-    # 2️⃣ البحث عن تقدم الطالب في هذا السيكشن
     progress = db.query(StudentProgress).filter(
         StudentProgress.user_id == current_user.id,
         StudentProgress.section_id == question.section_id
     ).first()
 
-    # 3️⃣ إذا أول محاولة
     if progress is None:
         progress = StudentProgress(
             user_id=current_user.id,
@@ -74,8 +112,6 @@ def solve_question(
             total_attempts=1
         )
         db.add(progress)
-
-    # 4️⃣ إذا موجود مسبقاً
     else:
         progress.total_attempts += 1
         if is_correct:
@@ -91,15 +127,12 @@ def solve_question(
 
 
 # =========================
-# GET SECTION PROGRESS
+# SECTION PROGRESS
 # =========================
-
 @router.get("/progress/{section_id}", response_model=SectionProgressResponse)
-def get_section_progress(
-    section_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
+def get_section_progress(section_id: int,
+                         db: Session = Depends(get_db),
+                         current_user: User = Depends(get_current_user)):
 
     progress = db.query(StudentProgress).filter(
         StudentProgress.user_id == current_user.id,
@@ -128,14 +161,11 @@ def get_section_progress(
 
 
 # =========================
-# STUDENT DASHBOARD
+# DASHBOARD
 # =========================
-
 @router.get("/dashboard", response_model=DashboardResponse)
-def student_dashboard(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
+def student_dashboard(db: Session = Depends(get_db),
+                      current_user: User = Depends(get_current_user)):
 
     progresses = db.query(StudentProgress).filter(
         StudentProgress.user_id == current_user.id
