@@ -109,6 +109,12 @@ def get_exam_questions(
 # ==============================
 # SUBMIT ANSWER
 # ==============================
+
+from pydantic import BaseModel
+
+class AnswerRequest(BaseModel):
+    selected_answer: str
+    
 @router.post("/answer/{exam_question_id}")
 def submit_answer(
     exam_question_id: int,
