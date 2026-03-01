@@ -82,7 +82,17 @@ def get_exam_questions(
         ExamAttemptQuestion.exam_attempt_id == attempt.id
     ).all()
 
-    return questions
+    return [
+        {
+            "id": q.id,
+            "question_text": q.question_text,
+            "question_type": q.question_type,
+            "options_json": q.options_json,
+            "question_degree": q.question_degree,
+            "selected_answer": q.selected_answer,
+        }
+        for q in questions
+    ]
 
 
 # ==============================
