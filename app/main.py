@@ -30,6 +30,7 @@ def health():
 # =========================
 from app import models
 
+
 # =========================
 # Create Tables
 # =========================
@@ -54,8 +55,6 @@ from app.routes.subject import router as subject_router
 from app.routes.chapter import router as chapter_router
 from app.routes.section import router as section_router
 from app.routes.student import router as student_router
-
-# 👇 هذا الجديد
 from app.admin_exam_templates import router as admin_exam_templates_router
 
 
@@ -75,12 +74,4 @@ app.include_router(subject_router)
 app.include_router(chapter_router)
 app.include_router(section_router)
 app.include_router(student_router)
-
-# 👇 تسجيل راوتر الامتحانات الادمن
 app.include_router(admin_exam_templates_router)
-import os
-import uvicorn
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("app.main:app", host="0.0.0.0", port=port)
