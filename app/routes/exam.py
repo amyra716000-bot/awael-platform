@@ -34,25 +34,30 @@ def start_exam(
     if not template:
         raise HTTPException(status_code=404, detail="Exam not found")
 
+    # فحص الاشتراك إذا الامتحان مدفوع
     if template.is_paid:
         subscription, plan = get_active_subscription(db, current_user)
         if not subscription:
             raise HTTPException(status_code=403, detail="Paid exam. Please subscribe.")
 
+    # عدد المحاولات السابقة
     previous_attempts = db.query(ExamAttempt).filter(
         ExamAttempt.user_id == current_user.id,
         ExamAttempt.template_id == template.id
     ).count()
 
-    if previous_attempts >= template.attempt_limit:
-        raise HTTPException(status_code=403, detail="Attempt limit reached")
+    # معالجة attempt_limit إذا كان None
+    if template.attempt_limit is not None:
+        if previous_attempts >= template.attempt_limit:
+            raise HTTPException(status_code=403, detail="Attempt limit reached")
 
+    # بدء الامتحان
     attempt = start_exam_attempt(db, current_user.id, template.id)
 
     return {
         "message": "Exam started",
         "attempt_id": attempt.id,
-        "duration_minutes": template.duration_minutes
+        "duration_minutes": template.duration_minutes or 0
     }
 
 
@@ -127,9 +132,14 @@ def finish_exam(
         ExamTemplate.id == attempt.template_id
     ).first()
 
-    time_limit = attempt.started_at + timedelta(minutes=template.duration_minutes)
-    if datetime.utcnow() > time_limit:
-        attempt.finished_at = datetime.utcnow()
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+
+    # فحص الوقت
+    if template.duration_minutes:
+        time_limit = attempt.started_at + timedelta(minutes=template.duration_minutes)
+        if datetime.utcnow() > time_limit:
+            attempt.finished_at = datetime.utcnow()
 
     attempt = finish_exam_attempt(db, attempt)
 
@@ -138,6 +148,6 @@ def finish_exam(
 
     return {
         "percentage": attempt.percentage,
-        "passed": attempt.percentage >= template.passing_score,
+        "passed": attempt.percentage >= (template.passing_score or 0),
         "show_answers": template.show_answers_after_finish
-    }
+        }
