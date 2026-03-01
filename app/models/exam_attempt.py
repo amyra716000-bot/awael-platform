@@ -1,105 +1,41 @@
-from sqlalchemy.orm import Session
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, Enum, String, Boolean
+from sqlalchemy.orm import relationship
 from datetime import datetime
-import random
-
-from app.models.exam_template import ExamTemplate
-from app.models.exam_attempt import ExamAttempt, AttemptStatus
-from app.models.exam_attempt_question import ExamAttemptQuestion
-from app.models.question import Question
+from app.database.session import Base
+import enum
 
 
-# ==========================================
-# START EXAM ATTEMPT
-# ==========================================
-def start_exam_attempt(
-    db: Session,
-    user_id: int,
-    template_id: int
-):
-    template = db.query(ExamTemplate).filter(
-        ExamTemplate.id == template_id
-    ).first()
-
-    if not template:
-        raise Exception("Exam template not found")
-
-    # إنشاء محاولة جديدة بالحالة in_progress
-    attempt = ExamAttempt(
-        user_id=user_id,
-        template_id=template.id,
-        status=AttemptStatus.in_progress,
-        started_at=datetime.utcnow()
-    )
-
-    db.add(attempt)
-    db.commit()
-    db.refresh(attempt)
-
-    # جلب أسئلة القسم
-    all_questions = db.query(Question).filter(
-        Question.section_id == template.section_id
-    ).all()
-
-    if len(all_questions) < template.total_questions:
-        raise Exception("Not enough questions in this section")
-
-    selected_questions = random.sample(
-        all_questions,
-        template.total_questions
-    )
-
-    for q in selected_questions:
-        exam_question = ExamAttemptQuestion(
-            exam_attempt_id=attempt.id,
-            question_id=q.id,
-            is_correct=None
-        )
-        db.add(exam_question)
-
-    db.commit()
-
-    return attempt
+class AttemptStatus(str, enum.Enum):
+    in_progress = "in_progress"
+    finished = "finished"
+    expired = "expired"
 
 
-# ==========================================
-# FINISH EXAM ATTEMPT
-# ==========================================
-def finish_exam_attempt(
-    db: Session,
-    attempt: ExamAttempt
-):
-    attempt.finished_at = datetime.utcnow()
-    attempt.status = AttemptStatus.finished
+class ExamAttempt(Base):
+    __tablename__ = "exam_attempts"
 
-    # حساب النتائج
-    correct = db.query(ExamAttemptQuestion).filter(
-        ExamAttemptQuestion.exam_attempt_id == attempt.id,
-        ExamAttemptQuestion.is_correct == True
-    ).count()
+    id = Column(Integer, primary_key=True, index=True)
 
-    wrong = db.query(ExamAttemptQuestion).filter(
-        ExamAttemptQuestion.exam_attempt_id == attempt.id,
-        ExamAttemptQuestion.is_correct == False
-    ).count()
+    template_id = Column(Integer, ForeignKey("exam_templates.id"))
+    user_id = Column(Integer, ForeignKey("users.id"))
 
-    skipped = db.query(ExamAttemptQuestion).filter(
-        ExamAttemptQuestion.exam_attempt_id == attempt.id,
-        ExamAttemptQuestion.is_correct == None
-    ).count()
+    status = Column(Enum(AttemptStatus), default=AttemptStatus.in_progress)
 
-    total_questions = correct + wrong + skipped
+    started_at = Column(DateTime, default=datetime.utcnow)
+    finished_at = Column(DateTime, nullable=True)
 
-    attempt.correct_answers = correct
-    attempt.wrong_answers = wrong
-    attempt.skipped_answers = skipped
-    attempt.total_degree = correct
+    total_degree = Column(Integer, default=0)
+    correct_answers = Column(Integer, default=0)
+    wrong_answers = Column(Integer, default=0)
+    skipped_answers = Column(Integer, default=0)
+    percentage = Column(Integer, default=0)
 
-    if total_questions > 0:
-        attempt.percentage = int((correct / total_questions) * 100)
-    else:
-        attempt.percentage = 0
+    ip_address = Column(String, nullable=True)
+    user_agent = Column(String, nullable=True)
 
-    db.commit()
-    db.refresh(attempt)
+    anti_cheat_flag = Column(Boolean, default=False)
+    device_fingerprint = Column(String, nullable=True)
+    leaderboard_processed = Column(Boolean, default=False)
 
-    return attempt
+    template = relationship("ExamTemplate")
+    user = relationship("User")
