@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 from app.database.session import engine, Base
+from app import admin_exam_templates
+
+app.include_router(admin_exam_templates.router)
 
 # =========================
 # Create App
