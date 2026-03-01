@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
-from sqlalchemy.sql import func
 from datetime import datetime
+import random
+
 from app.models.exam_template import ExamTemplate
 from app.models.exam_attempt import ExamAttempt
 from app.models.exam_attempt_question import ExamAttemptQuestion
@@ -8,7 +9,7 @@ from app.models.question import Question
 
 
 # ==========================================
-# إنشاء محاولة امتحان
+# START EXAM ATTEMPT
 # ==========================================
 def start_exam_attempt(
     db: Session,
@@ -20,9 +21,9 @@ def start_exam_attempt(
     ).first()
 
     if not template:
-        return None
+        raise Exception("Exam template not found")
 
-    # إنشاء المحاولة
+    # إنشاء محاولة
     attempt = ExamAttempt(
         user_id=user_id,
         template_id=template.id,
@@ -35,16 +36,22 @@ def start_exam_attempt(
     db.commit()
     db.refresh(attempt)
 
-    # جلب أسئلة عشوائية
-    questions = (
-        db.query(Question)
-        .filter(Question.section_id == template.section_id)
-        .order_by(func.random())
-        .limit(template.total_questions)
-        .all()
+    # جلب كل أسئلة القسم
+    all_questions = db.query(Question).filter(
+        Question.section_id == template.section_id
+    ).all()
+
+    # فحص وجود أسئلة كافية
+    if len(all_questions) < template.total_questions:
+        raise Exception("Not enough questions in this section")
+
+    # اختيار عشوائي من بايثون (أضمن من func.random)
+    selected_questions = random.sample(
+        all_questions,
+        template.total_questions
     )
 
-    for q in questions:
+    for q in selected_questions:
         exam_question = ExamAttemptQuestion(
             exam_attempt_id=attempt.id,
             question_id=q.id,
@@ -58,7 +65,7 @@ def start_exam_attempt(
 
 
 # ==========================================
-# إنهاء الامتحان
+# FINISH EXAM ATTEMPT
 # ==========================================
 def finish_exam_attempt(
     db: Session,
