@@ -98,10 +98,16 @@ def get_exam_questions(
 # ==============================
 # SUBMIT ANSWER
 # ==============================
+from pydantic import BaseModel
+
+class AnswerRequest(BaseModel):
+    selected_answer: str
+
+
 @router.post("/answer/{exam_question_id}")
 def submit_answer(
     exam_question_id: int,
-    is_correct: bool,
+    data: AnswerRequest,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
@@ -112,12 +118,20 @@ def submit_answer(
     if not exam_question:
         raise HTTPException(status_code=404, detail="Question not found")
 
-    exam_question.is_correct = is_correct
+    # خزّن اختيار الطالب
+    exam_question.selected_answer = data.selected_answer
+
+    # قارن بالإجابة الصحيحة
+    exam_question.is_correct = (
+        data.selected_answer == exam_question.correct_answer
+    )
+
     db.commit()
 
-    # update_question_stats(db, exam_question.question_id, is_correct)
-
-    return {"message": "Answer recorded"}
+    return {
+        "message": "Answer recorded",
+        "is_correct": exam_question.is_correct
+    }
 
 
 # ==============================
