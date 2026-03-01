@@ -34,24 +34,35 @@ def start_exam(
     if not template:
         raise HTTPException(status_code=404, detail="Exam not found")
 
-    # فحص الاشتراك إذا الامتحان مدفوع
+    # 🔒 منع وجود امتحان مفتوح
+    existing_attempt = db.query(ExamAttempt).filter(
+        ExamAttempt.user_id == current_user.id,
+        ExamAttempt.template_id == template.id,
+        ExamAttempt.status == AttemptStatus.in_progress
+    ).first()
+
+    if existing_attempt:
+        return {
+            "message": "Exam already started",
+            "attempt_id": existing_attempt.id,
+            "duration_minutes": template.duration_minutes or 0
+        }
+
+    # فحص الاشتراك
     if template.is_paid:
         subscription, plan = get_active_subscription(db, current_user)
         if not subscription:
             raise HTTPException(status_code=403, detail="Paid exam. Please subscribe.")
 
-    # عدد المحاولات السابقة
     previous_attempts = db.query(ExamAttempt).filter(
         ExamAttempt.user_id == current_user.id,
         ExamAttempt.template_id == template.id
     ).count()
 
-    # معالجة attempt_limit إذا كان None
     if template.attempt_limit is not None:
         if previous_attempts >= template.attempt_limit:
             raise HTTPException(status_code=403, detail="Attempt limit reached")
 
-    # بدء الامتحان
     attempt = start_exam_attempt(db, current_user.id, template.id)
 
     return {
@@ -200,3 +211,29 @@ def finish_exam(
         "passed": attempt.percentage >= (template.passing_score or 0),
         "show_answers": template.show_answers_after_finish
         }
+    
+# ==============================
+# EXAM HISTORY
+# ==============================
+@router.get("/history")
+def exam_history(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    attempts = db.query(ExamAttempt).filter(
+        ExamAttempt.user_id == current_user.id
+    ).order_by(ExamAttempt.started_at.desc()).all()
+
+    return [
+        {
+            "attempt_id": a.id,
+            "template_id": a.template_id,
+            "status": a.status,
+            "started_at": a.started_at,
+            "finished_at": a.finished_at,
+            "percentage": a.percentage,
+            "correct_answers": a.correct_answers,
+            "total_degree": a.total_degree
+        }
+        for a in attempts
+    ]
