@@ -85,129 +85,39 @@ def solve_question(question_id: int,
                    db: Session = Depends(get_db),
                    current_user: User = Depends(get_current_user)):
 
-    progress = db.query(StudentProgress).filter(
-        StudentProgress.user_id == current_user.id,
-        StudentProgress.question_id == question_id
+    # نجيب السؤال أولاً
+    question = db.query(Question).filter(
+        Question.id == question_id
     ).first()
 
+    if not question:
+        raise HTTPException(status_code=404, detail="Question not found")
+
+    # نبحث عن تقدم الطالب على مستوى السيكشن
+    progress = db.query(StudentProgress).filter(
+        StudentProgress.user_id == current_user.id,
+        StudentProgress.section_id == question.section_id
+    ).first()
+
+    # إذا ما موجود سجل تقدم
     if not progress:
         progress = StudentProgress(
             user_id=current_user.id,
-            question_id=question_id,
+            section_id=question.section_id,
             is_completed=True,
-            is_correct=is_correct
+            correct_answers=1 if is_correct else 0,
+            wrong_answers=0 if is_correct else 1
         )
         db.add(progress)
     else:
+        # تحديث الإحصائيات
+        if is_correct:
+            progress.correct_answers += 1
+        else:
+            progress.wrong_answers += 1
+
         progress.is_completed = True
-        progress.is_correct = is_correct
 
     db.commit()
 
     return {"message": "Progress saved successfully"}
-
-
-# =========================
-# GET SECTION PROGRESS
-# =========================
-@router.get("/progress/{section_id}")
-def get_section_progress(section_id: int,
-                         db: Session = Depends(get_db),
-                         current_user: User = Depends(get_current_user)):
-
-    questions = db.query(Question).filter(
-        Question.section_id == section_id
-    ).all()
-
-    total = len(questions)
-
-    if total == 0:
-        return {
-            "total_questions": 0,
-            "solved_questions": 0,
-            "correct_answers": 0,
-            "wrong_answers": 0,
-            "success_rate": 0
-        }
-
-    solved = db.query(StudentProgress).join(Question).filter(
-        StudentProgress.user_id == current_user.id,
-        Question.section_id == section_id
-    ).all()
-
-    solved_count = len(solved)
-    correct = len([s for s in solved if s.is_correct])
-    wrong = solved_count - correct
-
-    success_rate = (correct / solved_count) * 100 if solved_count > 0 else 0
-
-    return {
-        "total_questions": total,
-        "solved_questions": solved_count,
-        "correct_answers": correct,
-        "wrong_answers": wrong,
-        "success_rate": success_rate
-    }
-
-
-# =========================
-# ADD FAVORITE
-# =========================
-@router.post("/favorite/{question_id}")
-def add_favorite(question_id: int,
-                 db: Session = Depends(get_db),
-                 current_user: User = Depends(get_current_user)):
-
-    existing = db.query(Favorite).filter(
-        Favorite.user_id == current_user.id,
-        Favorite.question_id == question_id
-    ).first()
-
-    if existing:
-        return {"message": "Already added"}
-
-    favorite = Favorite(
-        user_id=current_user.id,
-        question_id=question_id
-    )
-
-    db.add(favorite)
-    db.commit()
-
-    return {"message": "Added to favorites"}
-
-
-# =========================
-# REMOVE FAVORITE
-# =========================
-@router.delete("/favorite/{question_id}")
-def remove_favorite(question_id: int,
-                    db: Session = Depends(get_db),
-                    current_user: User = Depends(get_current_user)):
-
-    favorite = db.query(Favorite).filter(
-        Favorite.user_id == current_user.id,
-        Favorite.question_id == question_id
-    ).first()
-
-    if not favorite:
-        raise HTTPException(status_code=404, detail="Not found")
-
-    db.delete(favorite)
-    db.commit()
-
-    return {"message": "Removed from favorites"}
-
-
-# =========================
-# GET FAVORITES
-# =========================
-@router.get("/favorites")
-def get_favorites(db: Session = Depends(get_db),
-                  current_user: User = Depends(get_current_user)):
-
-    favorites = db.query(Favorite).filter(
-        Favorite.user_id == current_user.id
-    ).all()
-
-    return favorites
