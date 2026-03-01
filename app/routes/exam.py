@@ -98,12 +98,6 @@ def get_exam_questions(
 # ==============================
 # SUBMIT ANSWER
 # ==============================
-from pydantic import BaseModel
-
-class AnswerRequest(BaseModel):
-    selected_answer: str
-
-
 @router.post("/answer/{exam_question_id}")
 def submit_answer(
     exam_question_id: int,
@@ -118,10 +112,42 @@ def submit_answer(
     if not exam_question:
         raise HTTPException(status_code=404, detail="Question not found")
 
-    # خزّن اختيار الطالب
+    # =====================================
+    # 🔒 تأكد السؤال تابع لهذا المستخدم
+    # =====================================
+    attempt = db.query(ExamAttempt).filter(
+        ExamAttempt.id == exam_question.exam_attempt_id
+    ).first()
+
+    if not attempt or attempt.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not allowed")
+
+    # =====================================
+    # 🔒 منع الإجابة بعد إنهاء الامتحان
+    # =====================================
+    if attempt.status != AttemptStatus.in_progress:
+        raise HTTPException(status_code=400, detail="Exam already finished")
+
+    # =====================================
+    # ⏱ فحص انتهاء الوقت
+    # =====================================
+    template = db.query(ExamTemplate).filter(
+        ExamTemplate.id == attempt.template_id
+    ).first()
+
+    if template and template.duration_minutes:
+        time_limit = attempt.started_at + timedelta(minutes=template.duration_minutes)
+        if datetime.utcnow() > time_limit:
+            attempt.status = AttemptStatus.finished
+            attempt.finished_at = datetime.utcnow()
+            db.commit()
+            raise HTTPException(status_code=400, detail="Time is over. Exam finished.")
+
+    # =====================================
+    # ✅ تخزين الإجابة (الكود القديم كما هو)
+    # =====================================
     exam_question.selected_answer = data.selected_answer
 
-    # قارن بالإجابة الصحيحة
     exam_question.is_correct = (
         data.selected_answer == exam_question.correct_answer
     )
@@ -131,7 +157,7 @@ def submit_answer(
     return {
         "message": "Answer recorded",
         "is_correct": exam_question.is_correct
-    }
+            }
 
 # ==============================
 # FINISH EXAM
