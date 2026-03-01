@@ -78,3 +78,9 @@ app.include_router(student_router)
 
 # 👇 تسجيل راوتر الامتحانات الادمن
 app.include_router(admin_exam_templates_router)
+import os
+import uvicorn
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port)
