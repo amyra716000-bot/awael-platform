@@ -105,7 +105,8 @@ def start_exam_attempt(
 
     except Exception as e:
     db.rollback()
-    raise HTTPException(status_code=500, detail=str(e))
+    print("START EXAM REAL ERROR:", repr(e))
+    raise
 
 
 # ==========================================
