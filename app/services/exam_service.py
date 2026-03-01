@@ -103,9 +103,9 @@ def start_exam_attempt(
         db.rollback()
         raise HTTPException(status_code=500, detail="Database error while starting exam")
 
-    except Exception:
-        db.rollback()
-        raise HTTPException(status_code=500, detail="Unexpected error while starting exam")
+    except Exception as e:
+    db.rollback()
+    raise HTTPException(status_code=500, detail=str(e))
 
 
 # ==========================================
