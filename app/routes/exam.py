@@ -7,9 +7,8 @@ from app.core.security import get_current_user
 from app.core.subscription_checker import get_active_subscription
 
 from app.models.exam_template import ExamTemplate
-from app.models.exam_attempt import ExamAttempt
+from app.models.exam_attempt import ExamAttempt, AttemptStatus
 from app.models.exam_attempt_question import ExamAttemptQuestion
-from app.models.question import Question
 
 from app.services.exam_service import start_exam_attempt, finish_exam_attempt
 from app.services.ranking_service import update_leaderboard_for_user
@@ -35,13 +34,11 @@ def start_exam(
     if not template:
         raise HTTPException(status_code=404, detail="Exam not found")
 
-    # فحص مدفوع
     if template.is_paid:
         subscription, plan = get_active_subscription(db, current_user)
         if not subscription:
             raise HTTPException(status_code=403, detail="Paid exam. Please subscribe.")
 
-    # منع الإعادة
     previous_attempts = db.query(ExamAttempt).filter(
         ExamAttempt.user_id == current_user.id,
         ExamAttempt.template_id == template.id
@@ -120,7 +117,7 @@ def finish_exam(
     attempt = db.query(ExamAttempt).filter(
         ExamAttempt.id == attempt_id,
         ExamAttempt.user_id == current_user.id,
-        ExamAttempt.is_completed == False
+        ExamAttempt.status == AttemptStatus.in_progress
     ).first()
 
     if not attempt:
@@ -130,19 +127,17 @@ def finish_exam(
         ExamTemplate.id == attempt.template_id
     ).first()
 
-    # فحص الوقت
     time_limit = attempt.started_at + timedelta(minutes=template.duration_minutes)
     if datetime.utcnow() > time_limit:
         attempt.finished_at = datetime.utcnow()
 
     attempt = finish_exam_attempt(db, attempt)
 
-    # تحديث التصنيف
     if template.leaderboard_enabled:
-        update_leaderboard_for_user(db, current_user.id, attempt.score)
+        update_leaderboard_for_user(db, current_user.id, attempt.percentage)
 
     return {
-        "score": attempt.score,
-        "passed": attempt.score >= template.passing_score,
+        "percentage": attempt.percentage,
+        "passed": attempt.percentage >= template.passing_score,
         "show_answers": template.show_answers_after_finish
-  }
+    }
