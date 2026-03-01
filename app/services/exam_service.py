@@ -101,12 +101,17 @@ def start_exam_attempt(
 
     except SQLAlchemyError:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Database error while starting exam")
+        raise HTTPException(
+            status_code=500,
+            detail="Database error while starting exam"
+        )
 
     except Exception as e:
-    db.rollback()
-    print("START EXAM REAL ERROR:", repr(e))
-    raise
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error while starting exam: {str(e)}"
+        )
 
 
 # ==========================================
