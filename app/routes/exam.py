@@ -105,7 +105,7 @@ def submit_answer(
     exam_question.is_correct = is_correct
     db.commit()
 
-    update_question_stats(db, exam_question.question_id, is_correct)
+    # update_question_stats(db, exam_question.question_id, is_correct)
 
     return {"message": "Answer recorded"}
 
