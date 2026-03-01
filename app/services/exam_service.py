@@ -11,67 +11,91 @@ from app.models.question import Question
 # ==========================================
 # START EXAM ATTEMPT
 # ==========================================
+from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
+from sqlalchemy.exc import SQLAlchemyError
+from datetime import datetime
+from fastapi import HTTPException
+
+from app.models.exam_template import ExamTemplate
+from app.models.exam_attempt import ExamAttempt, AttemptStatus
+from app.models.exam_attempt_question import ExamAttemptQuestion
+from app.models.question import Question
+
+
 def start_exam_attempt(
     db: Session,
     user_id: int,
     template_id: int
 ):
-    template = db.query(ExamTemplate).filter(
-        ExamTemplate.id == template_id
-    ).first()
+    try:
+        template = db.query(ExamTemplate).filter(
+            ExamTemplate.id == template_id
+        ).first()
 
-    if not template:
-        return None
+        if not template:
+            raise HTTPException(status_code=404, detail="Exam template not found")
 
-    # تأكد القسم موجود
-    if not template.section_id:
-        raise Exception("Exam template has no section assigned")
+        if not template.section_id:
+            raise HTTPException(status_code=400, detail="Exam template has no section assigned")
 
-    # تأكد يوجد أسئلة بالقسم
-    question_count = db.query(Question).filter(
-        Question.section_id == template.section_id
-    ).count()
+        # عدد الأسئلة المتوفرة
+        question_count = db.query(Question).filter(
+            Question.section_id == template.section_id
+        ).count()
 
-    if question_count == 0:
-        raise Exception("No questions found for this section")
+        if question_count == 0:
+            raise HTTPException(status_code=400, detail="No questions available for this section")
 
-    # إنشاء محاولة جديدة
-    attempt = ExamAttempt(
-        user_id=user_id,
-        template_id=template.id,
-        status=AttemptStatus.in_progress,
-        started_at=datetime.utcnow(),
-        total_degree=0,
-        correct_answers=0,
-        wrong_answers=0,
-        skipped_answers=0,
-        percentage=0,
-    )
-
-    db.add(attempt)
-    db.commit()
-    db.refresh(attempt)
-
-    # جلب أسئلة عشوائية حسب القسم
-    questions = (
-        db.query(Question)
-        .filter(Question.section_id == template.section_id)
-        .order_by(func.random())
-        .limit(min(template.total_questions, question_count))
-        .all()
-    )
-
-    for q in questions:
-        exam_question = ExamAttemptQuestion(
-            exam_attempt_id=attempt.id,
-            question_id=q.id,
-            is_correct=None
+        # إنشاء محاولة
+        attempt = ExamAttempt(
+            user_id=user_id,
+            template_id=template.id,
+            status=AttemptStatus.in_progress,
+            started_at=datetime.utcnow(),
+            total_degree=0,
+            correct_answers=0,
+            wrong_answers=0,
+            skipped_answers=0,
+            percentage=0,
         )
-        db.add(exam_question)
 
-    db.commit()
+        db.add(attempt)
+        db.flush()  # بدون commit حتى نحصل id بأمان
 
-    return attempt
+        # جلب أسئلة عشوائية
+        questions = (
+            db.query(Question)
+            .filter(Question.section_id == template.section_id)
+            .order_by(func.random())
+            .limit(min(template.total_questions, question_count))
+            .all()
+        )
+
+        for q in questions:
+            exam_question = ExamAttemptQuestion(
+                exam_attempt_id=attempt.id,
+                question_id=q.id,
+                is_correct=None
+            )
+            db.add(exam_question)
+
+        db.commit()
+        db.refresh(attempt)
+
+        return attempt
+
+    except HTTPException:
+        db.rollback()
+        raise
+
+    except SQLAlchemyError:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Database error while starting exam")
+
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Unexpected error while starting exam")
 
 
 # ==========================================
