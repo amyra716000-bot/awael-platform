@@ -7,6 +7,7 @@ from fastapi import HTTPException
 from app.models.exam_template import ExamTemplate
 from app.models.exam_attempt import ExamAttempt, AttemptStatus
 from app.models.exam_attempt_question import ExamAttemptQuestion
+from app.models.question import Question
 
 
 # ==========================================
