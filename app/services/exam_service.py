@@ -3,6 +3,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 from fastapi import HTTPException
+import json
 
 from app.models.exam_template import ExamTemplate
 from app.models.exam_attempt import ExamAttempt, AttemptStatus
@@ -71,7 +72,7 @@ def start_exam_attempt(
         )
 
         db.add(attempt)
-        db.flush()  # للحصول على attempt.id بدون commit
+        db.flush()
 
         # سحب أسئلة عشوائية
         questions = (
@@ -82,10 +83,16 @@ def start_exam_attempt(
             .all()
         )
 
+        # إنشاء نسخة snapshot من كل سؤال
         for q in questions:
             exam_question = ExamAttemptQuestion(
                 exam_attempt_id=attempt.id,
-                question_id=q.id,
+                question_text=q.content,
+                question_type=str(q.type_id),
+                options_json=getattr(q, "options_json", None),
+                correct_answer=q.answer,
+                question_degree=1,
+                selected_answer=None,
                 is_correct=None
             )
             db.add(exam_question)
@@ -111,46 +118,4 @@ def start_exam_attempt(
         raise HTTPException(
             status_code=500,
             detail=f"Unexpected error while starting exam: {str(e)}"
-        )
-
-
-# ==========================================
-# FINISH EXAM ATTEMPT
-# ==========================================
-def finish_exam_attempt(
-    db: Session,
-    attempt: ExamAttempt
-):
-    try:
-        attempt.finished_at = datetime.utcnow()
-        attempt.status = AttemptStatus.finished
-
-        correct_answers = db.query(ExamAttemptQuestion).filter(
-            ExamAttemptQuestion.exam_attempt_id == attempt.id,
-            ExamAttemptQuestion.is_correct == True
-        ).count()
-
-        total_questions = db.query(ExamAttemptQuestion).filter(
-            ExamAttemptQuestion.exam_attempt_id == attempt.id
-        ).count()
-
-        attempt.correct_answers = correct_answers
-        attempt.total_degree = total_questions
-
-        if total_questions > 0:
-            attempt.percentage = int((correct_answers / total_questions) * 100)
-        else:
-            attempt.percentage = 0
-
-        db.commit()
-        db.refresh(attempt)
-
-        return attempt
-
-    except SQLAlchemyError:
-        db.rollback()
-        raise HTTPException(status_code=500, detail="Database error while finishing exam")
-
-    except Exception:
-        db.rollback()
-        raise HTTPException(status_code=500, detail="Unexpected error while finishing exam")
+                               )
