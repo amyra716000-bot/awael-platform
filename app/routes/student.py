@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from typing import List, Optional
+from pydantic import BaseModel
 
 from app.database.session import get_db
 from app.core.security import get_current_user
@@ -12,9 +14,36 @@ router = APIRouter(prefix="/student", tags=["Student"])
 
 
 # =========================
+# RESPONSE SCHEMAS
+# =========================
+
+class SolveResponse(BaseModel):
+    message: str
+    total_attempts: int
+    correct_answers: int
+
+
+class SectionProgressResponse(BaseModel):
+    section_id: int
+    total_attempts: int
+    correct_answers: int
+    success_rate: int
+
+
+class DashboardResponse(BaseModel):
+    total_attempts: int
+    total_correct: int
+    overall_success_rate: int
+    sections_count: int
+    strongest_section: Optional[int]
+    weakest_section: Optional[int]
+
+
+# =========================
 # SOLVE QUESTION (Progress)
 # =========================
-@router.post("/solve/{question_id}")
+
+@router.post("/solve/{question_id}", response_model=SolveResponse)
 def solve_question(
     question_id: int,
     is_correct: bool,
@@ -59,10 +88,13 @@ def solve_question(
         "total_attempts": progress.total_attempts,
         "correct_answers": progress.correct_answers
     }
+
+
 # =========================
 # GET SECTION PROGRESS
 # =========================
-@router.get("/progress/{section_id}")
+
+@router.get("/progress/{section_id}", response_model=SectionProgressResponse)
 def get_section_progress(
     section_id: int,
     db: Session = Depends(get_db),
@@ -82,11 +114,10 @@ def get_section_progress(
             "success_rate": 0
         }
 
-    success_rate = 0
-    if progress.total_attempts > 0:
-        success_rate = int(
-            (progress.correct_answers / progress.total_attempts) * 100
-        )
+    success_rate = (
+        int((progress.correct_answers / progress.total_attempts) * 100)
+        if progress.total_attempts > 0 else 0
+    )
 
     return {
         "section_id": section_id,
@@ -94,10 +125,13 @@ def get_section_progress(
         "correct_answers": progress.correct_answers,
         "success_rate": success_rate
     }
+
+
 # =========================
 # STUDENT DASHBOARD
 # =========================
-@router.get("/dashboard")
+
+@router.get("/dashboard", response_model=DashboardResponse)
 def student_dashboard(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
