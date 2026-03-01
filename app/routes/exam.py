@@ -133,7 +133,6 @@ def submit_answer(
         "is_correct": exam_question.is_correct
     }
 
-
 # ==============================
 # FINISH EXAM
 # ==============================
