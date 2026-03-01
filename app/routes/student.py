@@ -59,3 +59,38 @@ def solve_question(
         "total_attempts": progress.total_attempts,
         "correct_answers": progress.correct_answers
     }
+# =========================
+# GET SECTION PROGRESS
+# =========================
+@router.get("/progress/{section_id}")
+def get_section_progress(
+    section_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
+    progress = db.query(StudentProgress).filter(
+        StudentProgress.user_id == current_user.id,
+        StudentProgress.section_id == section_id
+    ).first()
+
+    if progress is None:
+        return {
+            "section_id": section_id,
+            "total_attempts": 0,
+            "correct_answers": 0,
+            "success_rate": 0
+        }
+
+    success_rate = 0
+    if progress.total_attempts > 0:
+        success_rate = int(
+            (progress.correct_answers / progress.total_attempts) * 100
+        )
+
+    return {
+        "section_id": section_id,
+        "total_attempts": progress.total_attempts,
+        "correct_answers": progress.correct_answers,
+        "success_rate": success_rate
+    }
