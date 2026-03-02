@@ -243,3 +243,51 @@ def exam_history(
         }
         for a in attempts
     ]
+
+# ==============================
+# REVIEW EXAM (After Finish)
+# ==============================
+@router.get("/review/{attempt_id}")
+def review_exam(
+    attempt_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    attempt = db.query(ExamAttempt).filter(
+        ExamAttempt.id == attempt_id,
+        ExamAttempt.user_id == current_user.id
+    ).first()
+
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Attempt not found")
+
+    # لازم يكون الامتحان منتهي
+    if attempt.status != AttemptStatus.finished:
+        raise HTTPException(status_code=400, detail="Exam not finished yet")
+
+    template = db.query(ExamTemplate).filter(
+        ExamTemplate.id == attempt.template_id
+    ).first()
+
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+
+    # تحقق هل مسموح عرض الاجوبة
+    if not template.show_answers_after_finish:
+        raise HTTPException(status_code=403, detail="Review not allowed for this exam")
+
+    questions = db.query(ExamAttemptQuestion).filter(
+        ExamAttemptQuestion.exam_attempt_id == attempt.id
+    ).all()
+
+    return [
+        {
+            "question_id": q.id,
+            "question_text": q.question_text,
+            "selected_answer": q.selected_answer,
+            "correct_answer": q.correct_answer,
+            "is_correct": q.is_correct,
+            "question_degree": q.question_degree
+        }
+        for q in questions
+    ]
