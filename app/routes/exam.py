@@ -93,7 +93,21 @@ def get_exam_questions(
         ExamAttemptQuestion.exam_attempt_id == attempt.id
     ).all()
 
-    return [
+    remaining_seconds = None
+
+if attempt.started_at and attempt.status == AttemptStatus.in_progress:
+    template = db.query(ExamTemplate).filter(
+        ExamTemplate.id == attempt.template_id
+    ).first()
+
+    if template and template.duration_minutes:
+        end_time = attempt.started_at + timedelta(minutes=template.duration_minutes)
+        remaining = (end_time - datetime.utcnow()).total_seconds()
+        remaining_seconds = max(int(remaining), 0)
+
+return {
+    "remaining_time_seconds": remaining_seconds,
+    "questions": [
         {
             "id": q.id,
             "question_text": q.question_text,
@@ -104,6 +118,7 @@ def get_exam_questions(
         }
         for q in questions
     ]
+}
 
 
 # ==============================
