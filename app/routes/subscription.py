@@ -56,16 +56,25 @@ def subscribe(
         "plan": plan.name,
         "expires_at": end_date
     }
-@router.get("/me")
+    @router.get("/me")
 def get_my_subscription(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
+    subscription = check_and_update_subscription(db, current_user.id)
 
-    subscription = db.query(Subscription).filter(
-        Subscription.user_id == current_user.id,
-        Subscription.is_active == True
-    ).first()
+    if not subscription:
+        raise HTTPException(status_code=404, detail="No active subscription")
+
+    plan = db.query(Plan).filter(Plan.id == subscription.plan_id).first()
+
+    return {
+        "plan_name": plan.name,
+        "expires_at": subscription.end_date,
+        "daily_limit": plan.daily_ai_limit,
+        "used_today": subscription.ai_used_today,
+        "remaining_today": plan.daily_ai_limit - subscription.ai_used_today
+    }
 
     if not subscription:
         raise HTTPException(status_code=404, detail="No active subscription")
