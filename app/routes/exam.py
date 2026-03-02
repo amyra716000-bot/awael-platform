@@ -71,7 +71,6 @@ def start_exam(
         "duration_minutes": template.duration_minutes or 0
     }
 
-
 # ==============================
 # GET ATTEMPT QUESTIONS
 # ==============================
