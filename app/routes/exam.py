@@ -54,6 +54,17 @@ def start_exam(
         if not subscription:
             raise HTTPException(status_code=403, detail="Paid exam. Please subscribe.")
 
+    # منع إعادة المحاولة بعد النجاح
+    if template.passing_score is not None:
+        passed_attempt = db.query(ExamAttempt).filter(
+            ExamAttempt.user_id == current_user.id,
+            ExamAttempt.template_id == template.id,
+            ExamAttempt.percentage >= template.passing_score
+        ).first()
+
+        if passed_attempt:
+            raise HTTPException(status_code=403, detail="You already passed this exam")
+
     # فحص attempt limit
     previous_attempts = db.query(ExamAttempt).filter(
         ExamAttempt.user_id == current_user.id,
@@ -96,7 +107,6 @@ def get_exam_questions(
 
     remaining_seconds = None
 
-    # 🔥 AUTO FINISH إذا الوقت انتهى
     if attempt.started_at and attempt.status == AttemptStatus.in_progress:
         if template and template.duration_minutes:
             end_time = attempt.started_at + timedelta(minutes=template.duration_minutes)
@@ -166,7 +176,6 @@ def submit_answer(
     if attempt.status != AttemptStatus.in_progress:
         raise HTTPException(status_code=400, detail="Exam already finished")
 
-    # فحص الوقت مرة ثانية
     template = db.query(ExamTemplate).filter(
         ExamTemplate.id == attempt.template_id
     ).first()
@@ -193,7 +202,7 @@ def submit_answer(
 
 
 # =====================================================
-# FINISH EXAM MANUALLY
+# FINISH EXAM
 # =====================================================
 @router.post("/finish/{attempt_id}")
 def finish_exam(
@@ -227,35 +236,32 @@ def finish_exam(
 
 
 # =====================================================
-# HISTORY
+# LEADERBOARD TOP 10
 # =====================================================
-@router.get("/history")
-def exam_history(
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
-):
-    attempts = db.query(ExamAttempt).filter(
-        ExamAttempt.user_id == current_user.id
-    ).order_by(ExamAttempt.started_at.desc()).all()
+@router.get("/leaderboard/{template_id}")
+def get_leaderboard(template_id: int, db: Session = Depends(get_db)):
+    top_users = db.query(ExamAttempt).filter(
+        ExamAttempt.template_id == template_id,
+        ExamAttempt.status == AttemptStatus.finished
+    ).order_by(
+        ExamAttempt.percentage.desc()
+    ).limit(10).all()
 
     return [
         {
-            "attempt_id": a.id,
-            "template_id": a.template_id,
-            "status": a.status,
-            "started_at": a.started_at,
-            "finished_at": a.finished_at,
+            "user_id": a.user_id,
             "percentage": a.percentage,
+            "correct_answers": a.correct_answers
         }
-        for a in attempts
+        for a in top_users
     ]
 
 
 # =====================================================
-# REVIEW
+# ANALYTICS
 # =====================================================
-@router.get("/review/{attempt_id}")
-def review_exam(
+@router.get("/analysis/{attempt_id}")
+def exam_analysis(
     attempt_id: int,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
@@ -268,28 +274,52 @@ def review_exam(
     if not attempt:
         raise HTTPException(status_code=404, detail="Attempt not found")
 
-    if attempt.status != AttemptStatus.finished:
-        raise HTTPException(status_code=400, detail="Exam not finished yet")
-
-    template = db.query(ExamTemplate).filter(
-        ExamTemplate.id == attempt.template_id
-    ).first()
-
-    if not template.show_answers_after_finish:
-        raise HTTPException(status_code=403, detail="Review not allowed")
-
     questions = db.query(ExamAttemptQuestion).filter(
         ExamAttemptQuestion.exam_attempt_id == attempt.id
     ).all()
 
-    return [
-        {
-            "question_id": q.id,
-            "question_text": q.question_text,
-            "selected_answer": q.selected_answer,
-            "correct_answer": q.correct_answer,
-            "is_correct": q.is_correct,
-            "question_degree": q.question_degree
-        }
-        for q in questions
-    ]
+    correct = sum(1 for q in questions if q.is_correct)
+    wrong = sum(1 for q in questions if q.is_correct is False)
+    skipped = sum(1 for q in questions if q.selected_answer is None)
+
+    accuracy = (correct / len(questions) * 100) if questions else 0
+
+    return {
+        "correct": correct,
+        "wrong": wrong,
+        "skipped": skipped,
+        "accuracy": round(accuracy, 2),
+        "percentage": attempt.percentage
+    }
+
+
+# =====================================================
+# AI ANALYSIS
+# =====================================================
+@router.get("/ai-analysis/{attempt_id}")
+def ai_exam_analysis(
+    attempt_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    attempt = db.query(ExamAttempt).filter(
+        ExamAttempt.id == attempt_id,
+        ExamAttempt.user_id == current_user.id
+    ).first()
+
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Attempt not found")
+
+    if attempt.percentage >= 90:
+        feedback = "Excellent performance. You have strong mastery."
+    elif attempt.percentage >= 70:
+        feedback = "Good performance. Review weak areas for improvement."
+    elif attempt.percentage >= 50:
+        feedback = "Average performance. Focus on fundamentals."
+    else:
+        feedback = "Needs improvement. Consider re-studying the material."
+
+    return {
+        "percentage": attempt.percentage,
+        "feedback": feedback
+    }
