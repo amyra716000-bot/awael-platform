@@ -56,6 +56,7 @@ def subscribe(
         "plan": plan.name,
         "expires_at": end_date
     }
+    
     @router.get("/me")
 def get_my_subscription(
     db: Session = Depends(get_db),
@@ -88,3 +89,4 @@ def get_my_subscription(
         "used_today": subscription.ai_used_today,
         "remaining_today": plan.daily_ai_limit - subscription.ai_used_today
     }
+    
