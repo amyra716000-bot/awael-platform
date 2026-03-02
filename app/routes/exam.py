@@ -104,10 +104,17 @@ def get_exam_questions(
         ).first()
 
         if template and template.duration_minutes:
-            end_time = attempt.started_at + timedelta(minutes=template.duration_minutes)
-            remaining = (end_time - datetime.utcnow()).total_seconds()
-            remaining_seconds = max(int(remaining), 0)
+    end_time = attempt.started_at + timedelta(minutes=template.duration_minutes)
+    remaining = (end_time - datetime.utcnow()).total_seconds()
 
+    if remaining <= 0:
+        attempt.status = AttemptStatus.finished
+        attempt.finished_at = datetime.utcnow()
+        finish_exam_attempt(db, attempt)
+        remaining_seconds = 0
+    else:
+        remaining_seconds = int(remaining)
+        
     return {
         "remaining_time_seconds": remaining_seconds,
         "questions": [
