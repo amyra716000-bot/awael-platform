@@ -88,6 +88,9 @@ def get_exam_questions(
 
     if not attempt:
         raise HTTPException(status_code=404, detail="Attempt not found")
+        
+        print("NEW VERSION WORKING")
+        
 
     questions = db.query(ExamAttemptQuestion).filter(
         ExamAttemptQuestion.exam_attempt_id == attempt.id
