@@ -4,6 +4,7 @@ from pydantic import BaseModel
 class PlanCreate(BaseModel):
     name: str
     price: int
+    duration_days: int
     daily_question_limit: int
     daily_ai_limit: int
     access_exams: bool
@@ -15,6 +16,7 @@ class PlanCreate(BaseModel):
 class PlanUpdate(BaseModel):
     name: str | None = None
     price: int | None = None
+    duration_days: int | None = None
     daily_question_limit: int | None = None
     daily_ai_limit: int | None = None
     access_exams: bool | None = None
@@ -27,6 +29,7 @@ class PlanResponse(BaseModel):
     id: int
     name: str
     price: int
+    duration_days: int
     daily_question_limit: int
     daily_ai_limit: int
     access_exams: bool
