@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db
@@ -15,13 +15,11 @@ def ask_ai(
     current_user=Depends(get_current_user)
 ):
 
-    # 👇 نستقبل 3 قيم
+    # نستقبل 3 قيم مباشرة
     subscription, plan, remaining = check_ai_access(db, current_user)
 
-    # جواب تجريبي
     ai_answer = f"🤖 AI (Mock Mode): سؤالك كان: {question}"
 
-    # ===== إذا عنده اشتراك =====
     if subscription:
         subscription.ai_used_today += 1
     else:
