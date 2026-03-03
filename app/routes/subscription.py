@@ -56,7 +56,6 @@ def subscribe(
         "plan": plan.name,
         "expires_at": end_date
     }
-    
     @router.get("/me")
 def get_my_subscription(
     db: Session = Depends(get_db),
