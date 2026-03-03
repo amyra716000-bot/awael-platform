@@ -4,10 +4,23 @@ from sqlalchemy.orm import Session
 from app.database.session import get_db
 from app.core.security import get_current_user
 from app.core.subscription_checker import check_ai_access
+from app.utils.subscription import check_and_update_subscription
+from app.models.plan import Plan
+from fastapi import HTTPException
 
 router = APIRouter(prefix="/ai", tags=["AI"])
 
 
+subscription = check_and_update_subscription(db, current_user.id)
+
+if not subscription:
+    raise HTTPException(status_code=403, detail="No active subscription")
+
+plan = db.query(Plan).filter(Plan.id == subscription.plan_id).first()
+
+if subscription.ai_used_today >= plan.daily_ai_limit:
+    
+    raise HTTPException(status_code=403, detail="Daily AI limit reached")
 @router.post("/ask")
 def ask_ai(
     question: str,
