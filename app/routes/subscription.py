@@ -86,7 +86,4 @@ def get_my_subscription(
         "plan_name": plan.name,
         "expires_at": subscription.end_date,
         "daily_limit": plan.daily_ai_limit,
-        "used_today": subscription.ai_used_today,
-        "remaining_today": plan.daily_ai_limit - subscription.ai_used_today
-    }
-    
+        "used_today": subscription.ai_use
