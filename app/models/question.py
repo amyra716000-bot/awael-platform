@@ -12,9 +12,17 @@ class Question(Base):
     content = Column(Text, nullable=False)
     answer = Column(Text, nullable=False)
 
+    # 🔹 معلومات إضافية
     is_ministry = Column(Boolean, default=False)
     ministry_year = Column(Integer, nullable=True)
     is_important = Column(Boolean, default=False)
+
+    # 🔹 مستوى الصعوبة (جديد)
+    difficulty = Column(String(10), default="medium")
+
+    # 🔹 إحصائيات عامة للسؤال (جديد)
+    total_attempts = Column(Integer, default=0)
+    correct_attempts = Column(Integer, default=0)
 
     section_id = Column(Integer, ForeignKey("sections.id"), nullable=False)
     type_id = Column(Integer, ForeignKey("question_types.id"), nullable=False)
