@@ -14,25 +14,27 @@ def ask_ai(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
+
     # فحص الاشتراك وحدود الاستخدام
-    subscription, plan = check_ai_access(db, current_user)
+    result = check_ai_access(db, current_user)
 
-    # رد تجريبي (Mock)
-    ai_answer = f"🤖 AI (Mock Mode): سؤالك كان: {question}"
+    # إذا رجعت None أو False
+    if not result:
+        raise HTTPException(status_code=403, detail="No AI access")
 
-    # زيادة العداد
-    if subscription:
+    # إذا رجعت tuple (اشتراك + خطة)
+    if isinstance(result, tuple):
+        subscription, plan = result
         subscription.ai_used_today += 1
         remaining = plan.daily_ai_limit - subscription.ai_used_today
     else:
-        # وضع مجاني (اذا عندك مستخدم مجاني)
-        if current_user.free_ai_used >= 3:
-            raise HTTPException(status_code=403, detail="Free AI limit reached")
-
+        # وضع مجاني (3 اسئلة مثلاً)
         current_user.free_ai_used += 1
         remaining = 3 - current_user.free_ai_used
 
     db.commit()
+
+    ai_answer = f"🤖 AI (Mock Mode): سؤالك كان: {question}"
 
     return {
         "question": question,
