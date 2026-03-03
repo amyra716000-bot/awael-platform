@@ -35,7 +35,6 @@ from app import models
 # =========================
 # Create Tables
 # =========================
-Base.metadata.create_all(bind=engine)
 
 
 # =========================
