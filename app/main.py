@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from app.database.session import engine, Base
+from sqlalchemy import text
 
 # =========================
 # Create App
@@ -77,9 +78,9 @@ app.include_router(student_router)
 app.include_router(admin_exam_templates_router)
 
 
-from sqlalchemy import text
-from app.database import engine
-
+# =========================
+# TEMP: Reset Database (Production Use Only Once)
+# =========================
 @app.post("/__reset_db__")
 def reset_database():
     with engine.connect() as conn:
