@@ -33,11 +33,6 @@ from app import models
 
 
 # =========================
-# Create Tables
-# =========================
-
-
-# =========================
 # Import Routers
 # =========================
 from app.routes import (
