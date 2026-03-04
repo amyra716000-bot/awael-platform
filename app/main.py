@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from sqlalchemy import text
 
 from app.database.session import engine, Base
+from fastapi.middleware.cors import CORSMiddleware
 
 # =========================
 # Rate Limiting
@@ -27,6 +28,18 @@ app = FastAPI(
     docs_url=None if os.getenv("ENV") == "production" else "/docs",
     redoc_url=None if os.getenv("ENV") == "production" else "/redoc",
     openapi_url=None if os.getenv("ENV") == "production" else "/openapi.json",
+)
+origins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # =========================
