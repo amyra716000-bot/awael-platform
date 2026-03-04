@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db
@@ -15,11 +15,26 @@ def ask_ai(
     current_user=Depends(get_current_user)
 ):
 
-    # نستقبل 3 قيم مباشرة
+    # تحقق من السؤال
+    if not question or question.strip() == "":
+        raise HTTPException(
+            status_code=400,
+            detail="Question cannot be empty"
+        )
+
+    if len(question) > 1000:
+        raise HTTPException(
+            status_code=400,
+            detail="Question too long"
+        )
+
+    # فحص الاشتراك
     subscription, plan, remaining = check_ai_access(db, current_user)
 
+    # Mock AI (حالياً)
     ai_answer = f"🤖 AI (Mock Mode): سؤالك كان: {question}"
 
+    # زيادة العداد
     if subscription:
         subscription.ai_used_today += 1
     else:
