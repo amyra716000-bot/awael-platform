@@ -45,12 +45,31 @@ def start_exam_attempt(db: Session, user_id: int, template_id: int):
         raise HTTPException(status_code=400, detail="Exam template has no section assigned")
 
     # جلب الأسئلة عشوائياً
-    questions = (
-        db.query(Question)
-        .filter(Question.section_id == template.section_id)
-        .order_by(func.random())
-        .limit(template.total_questions)
-        .all()
+    query = db.query(Question)
+
+# اذا الامتحان وزاري
+if getattr(template, "ministry_year", None):
+    query = query.filter(
+        Question.is_ministry == True,
+        Question.ministry_year == template.ministry_year
+    )
+
+    if getattr(template, "ministry_round", None):
+        query = query.filter(
+            Question.ministry_round == template.ministry_round
+        )
+
+# اذا امتحان عادي
+else:
+    query = query.filter(
+        Question.section_id == template.section_id
+    )
+
+questions = (
+    query
+    .order_by(func.random())
+    .limit(template.total_questions)
+    .all()
     )
 
     if len(questions) < template.total_questions:
