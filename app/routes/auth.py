@@ -7,6 +7,7 @@ from app.core.security import verify_password, create_access_token
 import os
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from app.core.security import get_current_admin
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -52,7 +53,7 @@ def login(
 @router.post("/make-admin")
 def make_admin(
     email: str,
-    x_admin_key: str = Header(None),
+    admin: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     secret_key = os.getenv("ADMIN_PROMOTE_KEY")
