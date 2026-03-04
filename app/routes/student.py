@@ -30,8 +30,10 @@ router = APIRouter(prefix="/student", tags=["Student"])
 # GET STAGES
 # =========================
 @router.get("/stages", response_model=List[StageOut])
-def get_stages(db: Session = Depends(get_db),
-               current_user: User = Depends(get_current_user)):
+def get_stages(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     return db.query(Stage).all()
 
 
@@ -39,9 +41,12 @@ def get_stages(db: Session = Depends(get_db),
 # GET SUBJECTS
 # =========================
 @router.get("/subjects/{stage_id}", response_model=List[SubjectOut])
-def get_subjects(stage_id: int,
-                 db: Session = Depends(get_db),
-                 current_user: User = Depends(get_current_user)):
+def get_subjects(
+    stage_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
     return db.query(Subject).filter(
         Subject.stage_id == stage_id
     ).all()
@@ -51,9 +56,12 @@ def get_subjects(stage_id: int,
 # GET CHAPTERS
 # =========================
 @router.get("/chapters/{subject_id}", response_model=List[ChapterOut])
-def get_chapters(subject_id: int,
-                 db: Session = Depends(get_db),
-                 current_user: User = Depends(get_current_user)):
+def get_chapters(
+    subject_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
     return db.query(Chapter).filter(
         Chapter.subject_id == subject_id
     ).all()
@@ -63,34 +71,52 @@ def get_chapters(subject_id: int,
 # GET SECTIONS
 # =========================
 @router.get("/sections/{chapter_id}", response_model=List[SectionOut])
-def get_sections(chapter_id: int,
-                 db: Session = Depends(get_db),
-                 current_user: User = Depends(get_current_user)):
+def get_sections(
+    chapter_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
     return db.query(Section).filter(
         Section.chapter_id == chapter_id
-    ).all()
+    ).order_by(Section.order).all()
 
 
 # =========================
-# GET QUESTIONS
+# GET QUESTIONS (PAGINATION)
 # =========================
 @router.get("/questions/{section_id}", response_model=List[QuestionOut])
-def get_questions(section_id: int,
-                  db: Session = Depends(get_db),
-                  current_user: User = Depends(get_current_user)):
-    return db.query(Question).filter(
-        Question.section_id == section_id
-    ).all()
+def get_questions(
+    section_id: int,
+    page: int = 1,
+    limit: int = 20,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
+    offset = (page - 1) * limit
+
+    questions = (
+        db.query(Question)
+        .filter(Question.section_id == section_id)
+        .limit(limit)
+        .offset(offset)
+        .all()
+    )
+
+    return questions
 
 
 # =========================
 # SOLVE QUESTION
 # =========================
 @router.post("/solve/{question_id}", response_model=SolveResponse)
-def solve_question(question_id: int,
-                   is_correct: bool,
-                   db: Session = Depends(get_db),
-                   current_user: User = Depends(get_current_user)):
+def solve_question(
+    question_id: int,
+    is_correct: bool,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
 
     question = db.query(Question).filter(
         Question.id == question_id
@@ -112,8 +138,10 @@ def solve_question(question_id: int,
             total_attempts=1
         )
         db.add(progress)
+
     else:
         progress.total_attempts += 1
+
         if is_correct:
             progress.correct_answers += 1
 
@@ -130,9 +158,11 @@ def solve_question(question_id: int,
 # SECTION PROGRESS
 # =========================
 @router.get("/progress/{section_id}", response_model=SectionProgressResponse)
-def get_section_progress(section_id: int,
-                         db: Session = Depends(get_db),
-                         current_user: User = Depends(get_current_user)):
+def get_section_progress(
+    section_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
 
     progress = db.query(StudentProgress).filter(
         StudentProgress.user_id == current_user.id,
@@ -164,8 +194,10 @@ def get_section_progress(section_id: int,
 # DASHBOARD
 # =========================
 @router.get("/dashboard", response_model=DashboardResponse)
-def student_dashboard(db: Session = Depends(get_db),
-                      current_user: User = Depends(get_current_user)):
+def student_dashboard(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
 
     progresses = db.query(StudentProgress).filter(
         StudentProgress.user_id == current_user.id
@@ -208,4 +240,4 @@ def student_dashboard(db: Session = Depends(get_db),
         "sections_count": len(progresses),
         "strongest_section": strongest.section_id,
         "weakest_section": weakest.section_id
-    }
+            }
