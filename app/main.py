@@ -5,9 +5,14 @@ from sqlalchemy import text
 # =========================
 # Create App
 # =========================
+import os
+
 app = FastAPI(
     title="Awael Platform API",
-    version="1.0.0"
+    version="1.0.0",
+    docs_url=None if os.getenv("ENV") == "production" else "/docs",
+    redoc_url=None if os.getenv("ENV") == "production" else "/redoc",
+    openapi_url=None if os.getenv("ENV") == "production" else "/openapi.json",
 )
 
 # =========================
