@@ -25,9 +25,9 @@ limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(
     title="Awael Platform API",
     version="1.0.0",
-    docs_url=None if os.getenv("ENV") == "production" else "/docs",
-    redoc_url=None if os.getenv("ENV") == "production" else "/redoc",
-    openapi_url=None if os.getenv("ENV") == "production" else "/openapi.json",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
 )
 
 # =========================
