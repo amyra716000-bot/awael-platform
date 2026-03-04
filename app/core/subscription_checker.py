@@ -6,7 +6,6 @@ from app.models.plan import Plan
 from app.models.user import User
 import os
 
-
 FREE_AI_LIMIT = int(os.getenv("FREE_AI_LIMIT", 3))
 
 
@@ -14,6 +13,7 @@ FREE_AI_LIMIT = int(os.getenv("FREE_AI_LIMIT", 3))
 # فحص الاشتراك العام
 # ==========================================
 def get_active_subscription(db: Session, user: User):
+
     subscription = db.query(Subscription).filter(
         Subscription.user_id == user.id,
         Subscription.is_active == True
@@ -22,8 +22,8 @@ def get_active_subscription(db: Session, user: User):
     if not subscription:
         return None, None
 
-    # إذا منتهي
-    if subscription.end_date < datetime.utcnow():
+    # انتهاء الاشتراك
+    if subscription.end_date and subscription.end_date < datetime.utcnow():
         subscription.is_active = False
         db.commit()
         return None, None
@@ -42,14 +42,22 @@ def get_active_subscription(db: Session, user: User):
 # فحص AI Usage
 # ==========================================
 def check_ai_access(db: Session, user: User):
+
     subscription, plan = get_active_subscription(db, user)
 
-    # ====== إذا عنده اشتراك ======
+    # ==========================================
+    # اشتراك مدفوع
+    # ==========================================
     if subscription and plan:
 
-        # تصفير يومي
         today = datetime.utcnow().date()
-        if subscription.last_reset_date.date() != today:
+
+        if not subscription.last_reset_date:
+            subscription.last_reset_date = datetime.utcnow()
+            subscription.ai_used_today = 0
+            db.commit()
+
+        elif subscription.last_reset_date.date() != today:
             subscription.ai_used_today = 0
             subscription.last_reset_date = datetime.utcnow()
             db.commit()
@@ -57,7 +65,7 @@ def check_ai_access(db: Session, user: User):
         if plan.daily_ai_limit <= 0:
             raise HTTPException(
                 status_code=403,
-                detail="AI access not allowed in this plan"
+                detail="AI not available in this plan"
             )
 
         if subscription.ai_used_today >= plan.daily_ai_limit:
@@ -69,16 +77,28 @@ def check_ai_access(db: Session, user: User):
         remaining = plan.daily_ai_limit - subscription.ai_used_today
         return subscription, plan, remaining
 
-    # ====== Free Mode ======
-    if user.free_ai_used is None:
+    # ==========================================
+    # Free Mode
+    # ==========================================
+
+    today = datetime.utcnow().date()
+
+    if not user.free_ai_last_reset:
+        user.free_ai_last_reset = datetime.utcnow()
         user.free_ai_used = 0
+        db.commit()
+
+    elif user.free_ai_last_reset.date() != today:
+        user.free_ai_used = 0
+        user.free_ai_last_reset = datetime.utcnow()
         db.commit()
 
     if user.free_ai_used >= FREE_AI_LIMIT:
         raise HTTPException(
             status_code=403,
-            detail="Free limit reached. Please subscribe."
+            detail="Free AI limit reached. Please subscribe."
         )
 
     remaining = FREE_AI_LIMIT - user.free_ai_used
+
     return None, None, remaining
