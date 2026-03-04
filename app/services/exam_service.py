@@ -24,12 +24,14 @@ def start_exam_attempt(db: Session, user_id: int, template_id: int):
 
     now = datetime.utcnow()
 
+    # فحص وقت الامتحان
     if template.start_date and now < template.start_date:
         raise HTTPException(status_code=400, detail="Exam not started yet")
 
     if template.end_date and now > template.end_date:
         raise HTTPException(status_code=400, detail="Exam expired")
 
+    # منع وجود امتحان مفتوح
     existing_attempt = db.query(ExamAttempt).filter(
         ExamAttempt.user_id == user_id,
         ExamAttempt.template_id == template.id,
@@ -42,6 +44,7 @@ def start_exam_attempt(db: Session, user_id: int, template_id: int):
     if not template.section_id:
         raise HTTPException(status_code=400, detail="Exam template has no section assigned")
 
+    # جلب الأسئلة عشوائياً
     questions = (
         db.query(Question)
         .filter(Question.section_id == template.section_id)
@@ -50,8 +53,11 @@ def start_exam_attempt(db: Session, user_id: int, template_id: int):
         .all()
     )
 
-    if not questions:
-        raise HTTPException(status_code=400, detail="No questions available")
+    if len(questions) < template.total_questions:
+        raise HTTPException(
+            status_code=400,
+            detail="Not enough questions in this section"
+        )
 
     attempt = ExamAttempt(
         user_id=user_id,
@@ -68,17 +74,22 @@ def start_exam_attempt(db: Session, user_id: int, template_id: int):
     db.add(attempt)
     db.flush()
 
+    # إنشاء أسئلة الامتحان
     for q in questions:
+
+        degree = getattr(q, "degree", 1)
+
         exam_question = ExamAttemptQuestion(
             exam_attempt_id=attempt.id,
             question_text=q.content,
             question_type=str(q.type_id),
             options_json=getattr(q, "options_json", None),
             correct_answer=q.answer,
-            question_degree=1,
+            question_degree=degree,
             selected_answer=None,
             is_correct=None
         )
+
         db.add(exam_question)
 
     db.commit()
@@ -92,23 +103,43 @@ def start_exam_attempt(db: Session, user_id: int, template_id: int):
 # ==========================================
 def finish_exam_attempt(db: Session, attempt: ExamAttempt):
 
+    if attempt.status == AttemptStatus.finished:
+        return attempt
+
     attempt.finished_at = datetime.utcnow()
     attempt.status = AttemptStatus.finished
 
-    correct_answers = db.query(ExamAttemptQuestion).filter(
-        ExamAttemptQuestion.exam_attempt_id == attempt.id,
-        ExamAttemptQuestion.is_correct == True
-    ).count()
-
-    total_questions = db.query(ExamAttemptQuestion).filter(
+    questions = db.query(ExamAttemptQuestion).filter(
         ExamAttemptQuestion.exam_attempt_id == attempt.id
-    ).count()
+    ).all()
+
+    correct_answers = 0
+    total_degree = 0
+    correct_degree = 0
+    wrong_answers = 0
+    skipped_answers = 0
+
+    for q in questions:
+
+        total_degree += q.question_degree
+
+        if q.selected_answer is None:
+            skipped_answers += 1
+            continue
+
+        if q.is_correct:
+            correct_answers += 1
+            correct_degree += q.question_degree
+        else:
+            wrong_answers += 1
 
     attempt.correct_answers = correct_answers
-    attempt.total_degree = total_questions
+    attempt.wrong_answers = wrong_answers
+    attempt.skipped_answers = skipped_answers
+    attempt.total_degree = total_degree
 
-    if total_questions > 0:
-        attempt.percentage = int((correct_answers / total_questions) * 100)
+    if total_degree > 0:
+        attempt.percentage = int((correct_degree / total_degree) * 100)
     else:
         attempt.percentage = 0
 
