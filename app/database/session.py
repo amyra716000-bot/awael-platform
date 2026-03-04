@@ -4,12 +4,10 @@ import os
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-if not DATABASE_URL:
-    raise ValueError("DATABASE_URL is not set")
-
-# Railway + Cloud safe config
 engine = create_engine(
     DATABASE_URL,
+    pool_size=20,
+    max_overflow=40,
     pool_pre_ping=True
 )
 
