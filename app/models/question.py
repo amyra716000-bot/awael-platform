@@ -14,6 +14,7 @@ class Question(Base):
 
     is_ministry = Column(Boolean, default=False)
     ministry_year = Column(Integer, nullable=True)
+    ministry_round = Column(String(20), nullable=True)
     is_important = Column(Boolean, default=False)
 
     difficulty = Column(String(10), default="medium")
