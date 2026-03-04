@@ -7,10 +7,19 @@ class Subject(Base):
     __tablename__ = "subjects"
 
     id = Column(Integer, primary_key=True, index=True)
+
+    # اسم المادة
     name = Column(String, nullable=False)
 
-    stage_id = Column(Integer, ForeignKey("stages.id"))
+    # المرحلة
+    stage_id = Column(Integer, ForeignKey("stages.id"), nullable=False)
+
+    # الفرع (اختياري لأن بعض المراحل لا تحتوي فروع)
     branch_id = Column(Integer, ForeignKey("branches.id"), nullable=True)
 
-    stage = relationship("Stage", backref="subjects")
-    branch = relationship("Branch", backref="subjects")
+    # العلاقات
+    stage = relationship("Stage", back_populates="subjects")
+
+    branch = relationship("Branch", back_populates="subjects")
+
+    chapters = relationship("Chapter", back_populates="subject")
