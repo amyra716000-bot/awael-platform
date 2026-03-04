@@ -12,9 +12,6 @@ class SectionType(str, enum.Enum):
     drawings = "drawings"
     essay = "essay"
     grammar = "grammar"
-    ministry = "ministry"
-    important = "important"
-
 
 class Section(Base):
     __tablename__ = "sections"
@@ -25,5 +22,7 @@ class Section(Base):
     type = Column(Enum(SectionType), nullable=False)
 
     chapter_id = Column(Integer, ForeignKey("chapters.id"))
+
+    order = Column(Integer, default=0)
 
     chapter = relationship("Chapter", backref="sections")
