@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 from app.database.session import get_db
@@ -20,6 +20,7 @@ limiter = Limiter(key_func=get_remote_address)
 @router.post("/login")
 @limiter.limit("5/minute")
 def login(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
