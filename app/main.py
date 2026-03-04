@@ -1,15 +1,26 @@
+import os
 from fastapi import FastAPI
-from app.database.session import engine, Base
 from sqlalchemy import text
+
+from app.database.session import engine, Base
+
+# =========================
+# Rate Limiting
+# =========================
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.middleware import SlowAPIMiddleware
 
+
+# =========================
+# Create Limiter
+# =========================
+limiter = Limiter(key_func=get_remote_address)
+
+
 # =========================
 # Create App
 # =========================
-import os
-
 app = FastAPI(
     title="Awael Platform API",
     version="1.0.0",
@@ -18,9 +29,12 @@ app = FastAPI(
     openapi_url=None if os.getenv("ENV") == "production" else "/openapi.json",
 )
 
-limiter = Limiter(key_func=get_remote_address)
+# =========================
+# Add Rate Limit Middleware
+# =========================
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
+
 
 # =========================
 # Health Check
@@ -33,6 +47,7 @@ def root():
         "version": "1.0.0"
     }
 
+
 @app.get("/health")
 def health():
     return {"status": "healthy"}
@@ -42,6 +57,12 @@ def health():
 # Import Models (حتى تنشأ الجداول)
 # =========================
 from app import models
+
+
+# =========================
+# Create Tables
+# =========================
+Base.metadata.create_all(bind=engine)
 
 
 # =========================
@@ -84,3 +105,13 @@ app.include_router(student_router)
 app.include_router(admin_exam_templates_router)
 
 
+# =========================
+# Database Reset (Dev Only)
+# =========================
+@app.post("/__reset_db__")
+def reset_database():
+    with engine.connect() as conn:
+        conn.execute(text("DROP SCHEMA public CASCADE;"))
+        conn.execute(text("CREATE SCHEMA public;"))
+        conn.commit()
+    return {"status": "database reset complete"}
