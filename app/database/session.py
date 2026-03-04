@@ -4,12 +4,30 @@ import os
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable not set")
+
+# =========================
+# Engine
+# =========================
+
 engine = create_engine(
     DATABASE_URL,
+
+    # Connection Pool
     pool_size=20,
     max_overflow=40,
-    pool_pre_ping=True
+
+    # يعيد الاتصال إذا انقطع
+    pool_pre_ping=True,
+
+    # يغلق الاتصال القديم
+    pool_recycle=1800
 )
+
+# =========================
+# Session
+# =========================
 
 SessionLocal = sessionmaker(
     autocommit=False,
@@ -17,12 +35,21 @@ SessionLocal = sessionmaker(
     bind=engine
 )
 
+# =========================
+# Base
+# =========================
+
 Base = declarative_base()
 
+# =========================
+# Dependency
+# =========================
 
 def get_db():
     db = SessionLocal()
+
     try:
         yield db
+
     finally:
         db.close()
