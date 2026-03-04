@@ -9,16 +9,50 @@ class Subscription(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    user_id = Column(Integer, ForeignKey("users.id"))
-    plan_id = Column(Integer, ForeignKey("plans.id"))
+    # المستخدم
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False
+    )
 
+    # الخطة
+    plan_id = Column(
+        Integer,
+        ForeignKey("plans.id", ondelete="CASCADE"),
+        nullable=False
+    )
+
+    # وقت الاشتراك
     start_date = Column(DateTime, default=datetime.utcnow)
+
+    # وقت انتهاء الاشتراك
     end_date = Column(DateTime, nullable=False)
 
+    # =========================
+    # AI Usage Tracking
+    # =========================
+
     ai_used_today = Column(Integer, default=0)
+
     last_reset_date = Column(DateTime, default=datetime.utcnow)
+
+    # =========================
+    # حالة الاشتراك
+    # =========================
 
     is_active = Column(Boolean, default=True)
 
-    user = relationship("User")
-    plan = relationship("Plan")
+    # =========================
+    # العلاقات
+    # =========================
+
+    user = relationship(
+        "User",
+        back_populates="subscriptions"
+    )
+
+    plan = relationship(
+        "Plan",
+        back_populates="subscriptions"
+    )
