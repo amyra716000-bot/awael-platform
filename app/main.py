@@ -29,6 +29,10 @@ app = FastAPI(
     redoc_url=None if os.getenv("ENV") == "production" else "/redoc",
     openapi_url=None if os.getenv("ENV") == "production" else "/openapi.json",
 )
+
+# =========================
+# CORS
+# =========================
 origins = [
     "http://localhost:3000",
     "http://localhost:5173",
@@ -67,7 +71,7 @@ def health():
 
 
 # =========================
-# Import Models (حتى تنشأ الجداول)
+# Import Models
 # =========================
 from app import models
 
@@ -116,4 +120,3 @@ app.include_router(chapter_router)
 app.include_router(section_router)
 app.include_router(student_router)
 app.include_router(admin_exam_templates_router)
-
