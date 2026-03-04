@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 from app.database.session import get_db
 from app.models.user import User
-from app.core.security import verify_password, create_access_token
+from app.core.security import verify_password, create_access_token, get_password_hash
 import os
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -73,3 +73,31 @@ def make_admin(
     return {
         "message": f"{email} promoted to admin successfully"
     }
+
+@router.post("/register")
+def register(
+    email: str,
+    password: str,
+    db: Session = Depends(get_db)
+):
+    existing_user = db.query(User).filter(User.email == email).first()
+
+    if existing_user:
+        raise HTTPException(
+            status_code=400,
+            detail="Email already registered"
+        )
+
+    hashed_password = get_password_hash(password)
+
+    new_user = User(
+        email=email,
+        hashed_password=hashed_password,
+        role="user"
+    )
+
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return {"message": "User created successfully"}
