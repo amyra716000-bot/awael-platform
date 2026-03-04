@@ -8,17 +8,36 @@ class ExamAttemptQuestion(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    exam_attempt_id = Column(Integer, ForeignKey("exam_attempts.id"))
+    # المحاولة المرتبط بها السؤال
+    exam_attempt_id = Column(
+        Integer,
+        ForeignKey("exam_attempts.id", ondelete="CASCADE"),
+        nullable=False
+    )
 
+    # نص السؤال
     question_text = Column(Text, nullable=False)
+
+    # نوع السؤال
     question_type = Column(String, nullable=False)
 
+    # الخيارات (في حالة الاختيارات)
     options_json = Column(Text, nullable=True)
+
+    # الجواب الصحيح
     correct_answer = Column(String, nullable=False)
 
+    # درجة السؤال
     question_degree = Column(Integer, default=1)
 
+    # إجابة الطالب
     selected_answer = Column(String, nullable=True)
+
+    # هل الإجابة صحيحة
     is_correct = Column(Boolean, nullable=True)
 
-    attempt = relationship("ExamAttempt")
+    # العلاقة مع محاولة الامتحان
+    exam_attempt = relationship(
+        "ExamAttempt",
+        back_populates="questions"
+    )
