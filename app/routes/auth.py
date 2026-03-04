@@ -5,14 +5,19 @@ from app.database.session import get_db
 from app.models.user import User
 from app.core.security import verify_password, create_access_token
 import os
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
+
+limiter = Limiter(key_func=get_remote_address)
 
 
 # =========================
 # LOGIN (OAuth2)
 # =========================
 @router.post("/login")
+@limiter.limit("5/minute")
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
