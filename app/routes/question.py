@@ -66,3 +66,34 @@ def get_questions_by_section(
         )
 
     return questions
+
+from sqlalchemy.sql import func
+
+
+# =========================
+# DAILY QUESTION
+# =========================
+@router.get("/daily")
+def daily_question(
+    db: Session = Depends(get_db)
+):
+
+    question = (
+        db.query(Question)
+        .filter(Question.is_ministry == True)
+        .order_by(func.random())
+        .first()
+    )
+
+    if not question:
+        raise HTTPException(
+            status_code=404,
+            detail="No ministry questions available"
+        )
+
+    return {
+        "question_id": question.id,
+        "question": question.content,
+        "answer": question.answer,
+        "year": question.ministry_year
+    }
