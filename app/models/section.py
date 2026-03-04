@@ -13,16 +13,36 @@ class SectionType(str, enum.Enum):
     essay = "essay"
     grammar = "grammar"
 
+
 class Section(Base):
     __tablename__ = "sections"
 
     id = Column(Integer, primary_key=True, index=True)
+
+    # اسم القسم
     name = Column(String, nullable=False)
 
+    # نوع القسم
     type = Column(Enum(SectionType), nullable=False)
 
-    chapter_id = Column(Integer, ForeignKey("chapters.id"))
+    # الفصل المرتبط
+    chapter_id = Column(
+        Integer,
+        ForeignKey("chapters.id", ondelete="CASCADE"),
+        nullable=False
+    )
 
+    # ترتيب الظهور
     order = Column(Integer, default=0)
 
-    chapter = relationship("Chapter", backref="sections")
+    # العلاقات
+    chapter = relationship(
+        "Chapter",
+        back_populates="sections"
+    )
+
+    questions = relationship(
+        "Question",
+        back_populates="section",
+        cascade="all, delete"
+    )
