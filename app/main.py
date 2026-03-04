@@ -104,14 +104,3 @@ app.include_router(section_router)
 app.include_router(student_router)
 app.include_router(admin_exam_templates_router)
 
-
-# =========================
-# Database Reset (Dev Only)
-# =========================
-@app.post("/__reset_db__")
-def reset_database():
-    with engine.connect() as conn:
-        conn.execute(text("DROP SCHEMA public CASCADE;"))
-        conn.execute(text("CREATE SCHEMA public;"))
-        conn.commit()
-    return {"status": "database reset complete"}
