@@ -42,3 +42,27 @@ def get_question(
         raise HTTPException(status_code=404, detail="Question not found")
 
     return question
+
+# 🔹 جلب أسئلة قسم معين
+@router.get("/section/{section_id}")
+def get_questions_by_section(
+    section_id: int,
+    limit: int = 20,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+
+    questions = (
+        db.query(Question)
+        .filter(Question.section_id == section_id)
+        .limit(limit)
+        .all()
+    )
+
+    if not questions:
+        raise HTTPException(
+            status_code=404,
+            detail="No questions found for this section"
+        )
+
+    return questions
