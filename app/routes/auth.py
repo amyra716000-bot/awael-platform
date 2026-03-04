@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Header
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 from app.database.session import get_db
@@ -56,19 +56,7 @@ def make_admin(
     admin: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
-    secret_key = os.getenv("ADMIN_PROMOTE_KEY")
-
-    if not secret_key:
-        raise HTTPException(
-            status_code=500,
-            detail="ADMIN_PROMOTE_KEY not configured"
-        )
-
-    if x_admin_key != secret_key:
-        raise HTTPException(
-            status_code=403,
-            detail="Not authorized"
-        )
+    
 
     user = db.query(User).filter(User.email == email).first()
 
