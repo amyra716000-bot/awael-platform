@@ -7,8 +7,14 @@ class Chapter(Base):
     __tablename__ = "chapters"
 
     id = Column(Integer, primary_key=True, index=True)
+
+    # اسم الفصل
     name = Column(String, nullable=False)
 
-    subject_id = Column(Integer, ForeignKey("subjects.id"))
+    # المادة المرتبط بها
+    subject_id = Column(Integer, ForeignKey("subjects.id"), nullable=False)
 
-    subject = relationship("Subject", backref="chapters")
+    # العلاقات
+    subject = relationship("Subject", back_populates="chapters")
+
+    sections = relationship("Section", back_populates="chapter")
