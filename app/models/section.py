@@ -5,6 +5,8 @@ import enum
 
 
 class SectionType(str, enum.Enum):
+
+    # الاقسام العادية (مثل الملزمة)
     definitions = "definitions"
     explanations = "explanations"
     problems = "problems"
@@ -13,6 +15,13 @@ class SectionType(str, enum.Enum):
     essay = "essay"
     grammar = "grammar"
 
+    # الاقسام الوزارية
+    ministry_definitions = "ministry_definitions"
+    ministry_reasons = "ministry_reasons"
+    ministry_problems = "ministry_problems"
+    ministry_mcq = "ministry_mcq"
+    ministry_essay = "ministry_essay"
+    ministry_grammar = "ministry_grammar"
 
 class Section(Base):
     __tablename__ = "sections"
