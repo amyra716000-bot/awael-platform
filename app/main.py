@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from app.database.session import engine, Base
 from sqlalchemy import text
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.middleware import SlowAPIMiddleware
 
 # =========================
 # Create App
@@ -14,6 +17,10 @@ app = FastAPI(
     redoc_url=None if os.getenv("ENV") == "production" else "/redoc",
     openapi_url=None if os.getenv("ENV") == "production" else "/openapi.json",
 )
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
 
 # =========================
 # Health Check
