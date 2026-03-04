@@ -8,39 +8,14 @@ class Subject(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    # اسم المادة
-    name = Column(String, nullable=False, index=True)
+    name = Column(String, nullable=False)
 
-    # المرحلة
-    stage_id = Column(
-        Integer,
-        ForeignKey("stages.id", ondelete="CASCADE"),
-        nullable=False
-    )
+    stage_id = Column(Integer, ForeignKey("stages.id"), nullable=False)
 
-    # الفرع (اختياري)
-    branch_id = Column(
-        Integer,
-        ForeignKey("branches.id", ondelete="SET NULL"),
-        nullable=True
-    )
+    branch_id = Column(Integer, ForeignKey("branches.id"), nullable=True)
 
-    # =========================
-    # العلاقات
-    # =========================
+    stage = relationship("Stage", back_populates="subjects")
 
-    stage = relationship(
-        "Stage",
-        back_populates="subjects"
-    )
+    branch = relationship("Branch", back_populates="subjects")
 
-    branch = relationship(
-        "Branch",
-        back_populates="subjects"
-    )
-
-    chapters = relationship(
-        "Chapter",
-        back_populates="subject",
-        cascade="all, delete"
-    )
+    chapters = relationship("Chapter", back_populates="subject")
