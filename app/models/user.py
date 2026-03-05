@@ -1,7 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database.session import Base
-from sqlalchemy.orm import relationship
 
 
 class User(Base):
@@ -18,6 +17,12 @@ class User(Base):
 
     stage_id = Column(Integer, ForeignKey("stages.id"))
 
+    # العلاقة مع المرحلة
     stage = relationship("Stage")
-    
-    subscriptions = relationship("Subscription", back_populates="user")
+
+    # العلاقة مع الاشتراكات
+    subscriptions = relationship(
+        "Subscription",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
