@@ -15,7 +15,8 @@ class Chapter(Base):
     subject = relationship("Subject", back_populates="chapters")
 
     sections = relationship(
-        "Section",
-        back_populates="chapter",
-        cascade="all, delete-orphan"
+    "Section",
+    back_populates="chapter",
+    cascade="all, delete-orphan",
+    lazy="selectin"
     )
