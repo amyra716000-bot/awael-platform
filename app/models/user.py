@@ -15,6 +15,9 @@ class User(Base):
 
     role = Column(String, default="student")
 
+    xp_points = Column(Integer, default=0)
+level = Column(Integer, default=1)
+
     # =========================
     # المرحلة الدراسية (مهم)
     # =========================
