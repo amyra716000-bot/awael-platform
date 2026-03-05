@@ -118,5 +118,7 @@ app.include_router(question_router)
 app.include_router(subject_router)
 app.include_router(chapter_router)
 app.include_router(section_router)
+
 app.include_router(student_router)
+
 app.include_router(admin_exam_templates_router)
