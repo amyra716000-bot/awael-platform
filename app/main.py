@@ -12,6 +12,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.middleware import SlowAPIMiddleware
 
+
 limiter = Limiter(key_func=get_remote_address)
 
 # =========================
@@ -19,6 +20,7 @@ limiter = Limiter(key_func=get_remote_address)
 # =========================
 app = FastAPI(
     title="Awael Platform API",
+    description="Educational platform API for Iraqi students",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
@@ -31,6 +33,7 @@ app = FastAPI(
 origins = [
     "http://localhost:3000",
     "http://localhost:5173",
+    "*",  # يسمح للتطبيقات والبوت
 ]
 
 app.add_middleware(
@@ -47,11 +50,23 @@ app.add_middleware(
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
 
+
+# =========================
+# Startup Event
+# =========================
+@app.on_event("startup")
+def startup():
+
+    # إنشاء الجداول
+    Base.metadata.create_all(bind=engine)
+
+
 # =========================
 # Health Check
 # =========================
 @app.get("/")
 def root():
+
     return {
         "status": "running",
         "platform": "Awael Platform",
@@ -61,7 +76,10 @@ def root():
 
 @app.get("/health")
 def health():
-    return {"status": "healthy"}
+
+    return {
+        "status": "healthy"
+    }
 
 
 # =========================
@@ -69,15 +87,19 @@ def health():
 # =========================
 from app import models
 
-# =========================
-# Create Tables
-# =========================
-Base.metadata.create_all(bind=engine)
 
 # =========================
 # Import Routers
 # =========================
-from app.routes import auth, stage, setup, plan, subscription, ai, exam
+from app.routes import (
+    auth,
+    stage,
+    setup,
+    plan,
+    subscription,
+    ai,
+    exam
+)
 
 from app.routes.question import router as question_router
 from app.routes.subject import router as subject_router
