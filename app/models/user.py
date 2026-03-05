@@ -78,41 +78,11 @@ class User(Base):
     )
 
     # =========================
-    # Leaderboard
+    # المفضلة
     # =========================
 
-    leaderboards = relationship(
-        "Leaderboard",
+    favorites = relationship(
+        "Favorite",
         back_populates="user",
         cascade="all, delete-orphan"
     )
-
-    # =========================
-    # تقدم الطالب
-    # =========================
-
-    progress = relationship(
-        "StudentProgress",
-        back_populates="user",
-        cascade="all, delete-orphan"
-    )
-# =========================
-# المفضلة
-# =========================
-
-favorites = relationship(
-    "Favorite",
-    back_populates="user",
-    cascade="all, delete-orphan"
-)
-
-# =========================
-# المفضلة
-# =========================
-
-favorites = relationship(
-    "Favorite",
-    back_populates="user",
-    cascade="all, delete-orphan"
-)
-
