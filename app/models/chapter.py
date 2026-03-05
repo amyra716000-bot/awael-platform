@@ -10,13 +10,19 @@ class Chapter(Base):
 
     name = Column(String, nullable=False)
 
-    subject_id = Column(Integer, ForeignKey("subjects.id"))
+    subject_id = Column(
+        Integer,
+        ForeignKey("subjects.id", ondelete="CASCADE"),
+        nullable=False
+    )
 
-    subject = relationship("Subject", back_populates="chapters")
+    subject = relationship(
+        "Subject",
+        back_populates="chapters"
+    )
 
     sections = relationship(
-    "Section",
-    back_populates="chapter",
-    cascade="all, delete-orphan",
-    lazy="selectin"
+        "Section",
+        back_populates="chapter",
+        cascade="all, delete-orphan"
     )
