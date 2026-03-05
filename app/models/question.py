@@ -13,7 +13,7 @@ class Question(Base):
 
     answer = Column(Text, nullable=False)
 
-    explanation = Column(Text, nullable=True)
+    explanation = Column(Text)
 
     difficulty = Column(String(10), default="medium")
 
@@ -21,9 +21,9 @@ class Question(Base):
 
     is_ministry = Column(Boolean, default=False)
 
-    ministry_year = Column(Integer, nullable=True)
+    ministry_year = Column(Integer)
 
-    ministry_round = Column(String(20), nullable=True)
+    ministry_round = Column(String)
 
     total_attempts = Column(Integer, default=0)
 
@@ -33,14 +33,12 @@ class Question(Base):
 
     section_id = Column(
         Integer,
-        ForeignKey("sections.id", ondelete="CASCADE"),
-        nullable=False
+        ForeignKey("sections.id", ondelete="CASCADE")
     )
 
     type_id = Column(
         Integer,
-        ForeignKey("question_types.id"),
-        nullable=False
+        ForeignKey("question_types.id")
     )
 
     section = relationship(
@@ -53,19 +51,17 @@ class Question(Base):
         back_populates="questions"
     )
 
-    # =========================
-    # المفضلة
-    # =========================
-
     favorites = relationship(
         "Favorite",
         back_populates="question",
         cascade="all, delete-orphan"
     )
 
-    # =========================
-    # التصنيفات
-    # =========================
+    exam_attempt_questions = relationship(
+        "ExamAttemptQuestion",
+        back_populates="question",
+        cascade="all, delete"
+    )
 
     categories = relationship(
         "QuestionCategory",
