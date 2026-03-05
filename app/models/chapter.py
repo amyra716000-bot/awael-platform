@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database.session import Base
 
@@ -8,31 +8,14 @@ class Chapter(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    # اسم الفصل
-    name = Column(String, nullable=False, index=True)
+    name = Column(String, nullable=False)
 
-    # المادة المرتبط بها
-    subject_id = Column(
-        Integer,
-        ForeignKey("subjects.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True
-    )
+    subject_id = Column(Integer, ForeignKey("subjects.id"))
 
-    # ترتيب الفصل
-    order = Column(Integer, default=0)
-
-    # حالة الفصل
-    is_active = Column(Boolean, default=True)
-
-    # العلاقات
-    subject = relationship(
-        "Subject",
-        back_populates="chapters"
-    )
+    subject = relationship("Subject", back_populates="chapters")
 
     sections = relationship(
         "Section",
         back_populates="chapter",
-        cascade="all, delete"
+        cascade="all, delete-orphan"
     )
