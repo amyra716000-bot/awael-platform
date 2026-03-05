@@ -68,7 +68,10 @@ class Section(Base):
 
     chapter = relationship(
         "Chapter",
-        backref="sections",
+        chapter = relationship(
+    "Chapter",
+    back_populates="sections"
+        )
         lazy="selectin"
     )
 
