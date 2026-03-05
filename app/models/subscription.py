@@ -32,7 +32,6 @@ class Subscription(Base):
     # =========================
     # AI Usage Tracking
     # =========================
-
     ai_used_today = Column(Integer, default=0)
 
     last_reset_date = Column(DateTime, default=datetime.utcnow)
@@ -40,21 +39,11 @@ class Subscription(Base):
     # =========================
     # حالة الاشتراك
     # =========================
-
     is_active = Column(Boolean, default=True)
 
     # =========================
     # العلاقات
     # =========================
+    user = relationship("User", back_populates="subscriptions")
 
-    user = relationship(
-        "User",
-        back_populates="subscriptions"
-    )
-
-    plan = relationship(
-        "Plan",
-        back_populates="subscriptions"
-    )
-
-user = relationship("User", back_populates="subscriptions")
+    plan = relationship("Plan", back_populates="subscriptions")
