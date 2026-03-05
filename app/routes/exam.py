@@ -46,33 +46,32 @@ def start_exam(
         return {
             "message": "Exam already started",
             "attempt_id": existing_attempt.id,
-            "duration_minutes": template.duration_minutes or 0
+            "duration_minutes": template.duration_minutes
         }
 
     # فحص الاشتراك
     if template.is_paid:
         subscription, plan = get_active_subscription(db, current_user)
         if not subscription:
-            raise HTTPException(status_code=403, detail="Paid exam. Please subscribe.")
+            raise HTTPException(status_code=403, detail="Subscription required")
 
     # منع إعادة الامتحان بعد النجاح
-    if template.passing_score is not None:
-        passed_attempt = db.query(ExamAttempt).filter(
-            ExamAttempt.user_id == current_user.id,
-            ExamAttempt.template_id == template.id,
-            ExamAttempt.percentage >= template.passing_score
-        ).first()
+    passed_attempt = db.query(ExamAttempt).filter(
+        ExamAttempt.user_id == current_user.id,
+        ExamAttempt.template_id == template.id,
+        ExamAttempt.percentage >= template.passing_score
+    ).first()
 
-        if passed_attempt:
-            raise HTTPException(status_code=403, detail="You already passed this exam")
+    if passed_attempt:
+        raise HTTPException(status_code=403, detail="You already passed this exam")
 
     # attempt limit
-    previous_attempts = db.query(ExamAttempt).filter(
+    attempts_count = db.query(ExamAttempt).filter(
         ExamAttempt.user_id == current_user.id,
         ExamAttempt.template_id == template.id
     ).count()
 
-    if template.attempt_limit is not None and previous_attempts >= template.attempt_limit:
+    if template.attempt_limit and attempts_count >= template.attempt_limit:
         raise HTTPException(status_code=403, detail="Attempt limit reached")
 
     attempt = start_exam_attempt(db, current_user.id, template.id)
@@ -80,7 +79,7 @@ def start_exam(
     return {
         "message": "Exam started",
         "attempt_id": attempt.id,
-        "duration_minutes": template.duration_minutes or 0
+        "duration_minutes": template.duration_minutes
     }
 
 
@@ -108,28 +107,27 @@ def get_exam_questions(
 
     remaining_seconds = None
 
-    if attempt.started_at and attempt.status == AttemptStatus.in_progress:
-        if template and template.duration_minutes:
+    if template.duration_minutes and attempt.status == AttemptStatus.in_progress:
 
-            end_time = attempt.started_at + timedelta(minutes=template.duration_minutes)
+        end_time = attempt.started_at + timedelta(minutes=template.duration_minutes)
+        remaining = (end_time - datetime.utcnow()).total_seconds()
 
-            remaining = (end_time - datetime.utcnow()).total_seconds()
+        if remaining <= 0:
+            attempt.status = AttemptStatus.finished
+            attempt.finished_at = datetime.utcnow()
 
-            if remaining <= 0:
-                attempt.status = AttemptStatus.finished
-                attempt.finished_at = datetime.utcnow()
-                attempt = finish_exam_attempt(db, attempt)
+            attempt = finish_exam_attempt(db, attempt)
 
-                if template.leaderboard_enabled:
-                    update_leaderboard_for_user(db, current_user.id, attempt.percentage)
+            if template.leaderboard_enabled:
+                update_leaderboard_for_user(db, current_user.id, attempt.percentage)
 
-                remaining_seconds = 0
-            else:
-                remaining_seconds = int(remaining)
+            remaining_seconds = 0
+        else:
+            remaining_seconds = int(remaining)
 
     questions = db.query(ExamAttemptQuestion).filter(
         ExamAttemptQuestion.exam_attempt_id == attempt.id
-    ).all()
+    ).order_by(ExamAttemptQuestion.id).all()
 
     return {
         "remaining_time_seconds": remaining_seconds,
@@ -180,19 +178,9 @@ def submit_answer(
     if attempt.status != AttemptStatus.in_progress:
         raise HTTPException(status_code=400, detail="Exam already finished")
 
-    template = db.query(ExamTemplate).filter(
-        ExamTemplate.id == attempt.template_id
-    ).first()
-
-    if template and template.duration_minutes:
-        time_limit = attempt.started_at + timedelta(minutes=template.duration_minutes)
-
-        if datetime.utcnow() > time_limit:
-            attempt.status = AttemptStatus.finished
-            attempt.finished_at = datetime.utcnow()
-            attempt = finish_exam_attempt(db, attempt)
-
-            raise HTTPException(status_code=400, detail="Time is over. Exam finished.")
+    # منع تغيير الإجابة
+    if exam_question.selected_answer is not None:
+        raise HTTPException(status_code=400, detail="Answer already submitted")
 
     exam_question.selected_answer = data.selected_answer
     exam_question.is_correct = (
@@ -224,7 +212,7 @@ def finish_exam(
     ).first()
 
     if not attempt:
-        raise HTTPException(status_code=404, detail="Attempt not found or already finished")
+        raise HTTPException(status_code=404, detail="Attempt not found")
 
     template = db.query(ExamTemplate).filter(
         ExamTemplate.id == attempt.template_id
@@ -232,12 +220,12 @@ def finish_exam(
 
     attempt = finish_exam_attempt(db, attempt)
 
-    if template and template.leaderboard_enabled:
+    if template.leaderboard_enabled:
         update_leaderboard_for_user(db, current_user.id, attempt.percentage)
 
     return {
         "percentage": attempt.percentage,
-        "passed": attempt.percentage >= (template.passing_score or 0),
+        "passed": attempt.percentage >= template.passing_score,
         "show_answers": template.show_answers_after_finish
     }
 
@@ -255,81 +243,18 @@ def get_leaderboard(template_id: int, db: Session = Depends(get_db)):
         ExamAttempt.percentage.desc()
     ).limit(10).all()
 
-    return [
-        {
+    seen_users = set()
+    result = []
+
+    for a in attempts:
+        if a.user_id in seen_users:
+            continue
+        seen_users.add(a.user_id)
+
+        result.append({
             "user_id": a.user_id,
             "percentage": a.percentage,
             "correct_answers": a.correct_answers
-        }
-        for a in attempts
-    ]
+        })
 
-
-# =====================================================
-# ANALYSIS
-# =====================================================
-@router.get("/analysis/{attempt_id}")
-def exam_analysis(
-    attempt_id: int,
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
-):
-
-    attempt = db.query(ExamAttempt).filter(
-        ExamAttempt.id == attempt_id,
-        ExamAttempt.user_id == current_user.id
-    ).first()
-
-    if not attempt:
-        raise HTTPException(status_code=404, detail="Attempt not found")
-
-    questions = db.query(ExamAttemptQuestion).filter(
-        ExamAttemptQuestion.exam_attempt_id == attempt.id
-    ).all()
-
-    correct = sum(1 for q in questions if q.is_correct)
-    wrong = sum(1 for q in questions if q.is_correct is False)
-    skipped = sum(1 for q in questions if q.selected_answer is None)
-
-    accuracy = (correct / len(questions) * 100) if questions else 0
-
-    return {
-        "correct": correct,
-        "wrong": wrong,
-        "skipped": skipped,
-        "accuracy": round(accuracy, 2),
-        "percentage": attempt.percentage
-    }
-
-
-# =====================================================
-# AI ANALYSIS
-# =====================================================
-@router.get("/ai-analysis/{attempt_id}")
-def ai_exam_analysis(
-    attempt_id: int,
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
-):
-
-    attempt = db.query(ExamAttempt).filter(
-        ExamAttempt.id == attempt_id,
-        ExamAttempt.user_id == current_user.id
-    ).first()
-
-    if not attempt:
-        raise HTTPException(status_code=404, detail="Attempt not found")
-
-    if attempt.percentage >= 90:
-        feedback = "Excellent performance. You have strong mastery."
-    elif attempt.percentage >= 70:
-        feedback = "Good performance. Review weak areas for improvement."
-    elif attempt.percentage >= 50:
-        feedback = "Average performance. Focus on fundamentals."
-    else:
-        feedback = "Needs improvement. Consider re-studying the material."
-
-    return {
-        "percentage": attempt.percentage,
-        "feedback": feedback
-    }
+    return result
