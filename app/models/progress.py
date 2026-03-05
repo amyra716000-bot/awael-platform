@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, UniqueConstraint, Index
+from sqlalchemy import Column, Integer, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.database.session import Base
 
@@ -22,36 +22,29 @@ class StudentProgress(Base):
         nullable=False
     )
 
-    # إحصائيات التقدم
+    # احصائيات التقدم
     correct_answers = Column(Integer, default=0)
+
     total_attempts = Column(Integer, default=0)
 
-    # القيود
+    # منع التكرار لنفس المستخدم والقسم
     __table_args__ = (
-
-        # منع تكرار سجل التقدم
         UniqueConstraint(
             "user_id",
             "section_id",
             name="unique_user_section_progress"
         ),
-
-        # تحسين الأداء
-        Index(
-            "idx_user_progress",
-            "user_id",
-            "section_id"
-        ),
     )
 
+    # =========================
     # العلاقات
+    # =========================
+
     user = relationship(
         "User",
-        back_populates="progress",
-        lazy="selectin"
+        back_populates="progress"
     )
 
     section = relationship(
-        "Section",
-        lazy="selectin"
+        "Section"
     )
