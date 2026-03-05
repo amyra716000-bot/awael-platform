@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, DateTime
+from sqlalchemy import Column, Integer, DateTime, UniqueConstraint
 from datetime import datetime
 from app.database.session import Base
 
@@ -7,4 +7,16 @@ class MonthlyReset(Base):
     __tablename__ = "monthly_resets"
 
     id = Column(Integer, primary_key=True, index=True)
-    last_reset = Column(DateTime, default=datetime.utcnow)
+
+    last_reset = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "id",
+            name="unique_monthly_reset"
+        ),
+    )
