@@ -6,9 +6,6 @@ import enum
 
 class SectionType(str, enum.Enum):
 
-    # =========================
-    # الاقسام العادية
-    # =========================
     definitions = "definitions"
     explanations = "explanations"
     problems = "problems"
@@ -17,9 +14,6 @@ class SectionType(str, enum.Enum):
     essay = "essay"
     grammar = "grammar"
 
-    # =========================
-    # الاقسام الوزارية
-    # =========================
     ministry_definitions = "ministry_definitions"
     ministry_reasons = "ministry_reasons"
     ministry_problems = "ministry_problems"
@@ -33,53 +27,25 @@ class Section(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    # اسم القسم
-    name = Column(
-        String,
-        nullable=False,
-        index=True
-    )
+    name = Column(String, nullable=False)
 
-    # نوع القسم
-    type = Column(
-        Enum(SectionType),
-        nullable=False
-    )
+    type = Column(Enum(SectionType), nullable=False)
 
-    # الفصل المرتبط
     chapter_id = Column(
         Integer,
         ForeignKey("chapters.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True
+        nullable=False
     )
 
-    # ترتيب القسم داخل الفصل
-    order = Column(
-        Integer,
-        default=0
-    )
-
-    # =========================
-    # العلاقات
-    # =========================
+    order = Column(Integer, default=0)
 
     chapter = relationship(
         "Chapter",
-        back_populates="sections",
-        lazy="selectin"
+        back_populates="sections"
     )
 
     questions = relationship(
         "Question",
         back_populates="section",
-        cascade="all, delete-orphan",
-        lazy="selectin"
+        cascade="all, delete-orphan"
     )
-
-    # =========================
-    # Debug
-    # =========================
-
-    def __repr__(self):
-        return f"<Section id={self.id} name={self.name} type={self.type}>"
