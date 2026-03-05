@@ -62,3 +62,9 @@ class Question(Base):
         secondary=question_category_link,
         back_populates="questions"
     )
+
+favorites = relationship(
+    "Favorite",
+    back_populates="question",
+    cascade="all, delete-orphan"
+)
