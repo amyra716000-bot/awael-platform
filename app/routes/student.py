@@ -257,7 +257,7 @@ def student_dashboard(
         "weakest_section": weakest.section_id
             }
 
-# =========================
+=====
 # GLOBAL LEADERBOARD
 # =========================
 @router.get("/leaderboard")
@@ -284,4 +284,3 @@ def get_leaderboard(
         })
 
     return leaderboard
-
