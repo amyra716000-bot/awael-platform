@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Boolean, String, ForeignKey
+from sqlalchemy import Column, Integer, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from app.database.session import Base
 
@@ -6,28 +6,35 @@ from app.database.session import Base
 class ExamAttemptQuestion(Base):
     __tablename__ = "exam_attempt_questions"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, index=True)
 
-    attempt_id = Column(
+    # محاولة الامتحان
+    exam_attempt_id = Column(
         Integer,
-        ForeignKey("exam_attempts.id")
+        ForeignKey("exam_attempts.id", ondelete="CASCADE"),
+        nullable=False
     )
 
+    # السؤال
     question_id = Column(
         Integer,
-        ForeignKey("questions.id")
+        ForeignKey("questions.id", ondelete="CASCADE"),
+        nullable=False
     )
 
-    user_answer = Column(String)
+    # هل الاجابة صحيحة
+    is_correct = Column(Boolean, default=False)
 
-    is_correct = Column(Boolean)
+    # ======================
+    # العلاقات
+    # ======================
 
-    attempt = relationship(
+    exam_attempt = relationship(
         "ExamAttempt",
         back_populates="questions"
     )
 
     question = relationship(
         "Question",
-        back_populates="exam_attempt_questions"
+        back_populates="exam_attempts"
     )
