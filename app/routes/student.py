@@ -260,7 +260,6 @@ def student_dashboard(
 # =========================
 # GLOBAL LEADERBOARD
 # =========================
-
 @router.get("/leaderboard")
 def get_leaderboard(
     limit: int = 20,
