@@ -147,6 +147,21 @@ def solve_question(
 
     db.commit()
 
+    # =====================
+# XP SYSTEM
+# =====================
+
+# إضافة نقاط
+if is_correct:
+    current_user.xp_points += 10
+else:
+    current_user.xp_points += 2
+
+# تحديث المستوى
+current_user.level = (current_user.xp_points // 100) + 1
+
+db.commit()
+
     return {
         "message": "Progress saved successfully",
         "total_attempts": progress.total_attempts,
