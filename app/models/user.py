@@ -78,3 +78,13 @@ class User(Base):
         back_populates="user",
         cascade="all, delete"
     )
+
+    # =========================
+    # Leaderboard
+    # =========================
+
+    leaderboards = relationship(
+        "Leaderboard",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
