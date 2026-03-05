@@ -14,6 +14,9 @@ class Plan(Base):
     # السعر بالدولار
     price = Column(Integer, nullable=False)
 
+    # وصف الخطة
+    description = Column(String, nullable=True)
+
     # مدة الاشتراك بالأيام
     duration_days = Column(Integer, nullable=False)
 
@@ -38,6 +41,9 @@ class Plan(Base):
     access_schedule = Column(Boolean, default=False)
 
     access_essay = Column(Boolean, default=False)
+
+    # حالة الخطة
+    is_active = Column(Boolean, default=True)
 
     # =========================
     # العلاقة مع الاشتراكات
