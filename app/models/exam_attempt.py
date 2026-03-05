@@ -20,14 +20,16 @@ class ExamAttempt(Base):
     template_id = Column(
         Integer,
         ForeignKey("exam_templates.id", ondelete="CASCADE"),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     # المستخدم
     user_id = Column(
         Integer,
         ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     # حالة الامتحان
@@ -40,11 +42,17 @@ class ExamAttempt(Base):
     started_at = Column(DateTime, default=datetime.utcnow)
     finished_at = Column(DateTime, nullable=True)
 
+    # مدة الامتحان بالثواني
+    duration_seconds = Column(Integer, nullable=True)
+
     # الإحصائيات
     total_degree = Column(Integer, default=0)
+
     correct_answers = Column(Integer, default=0)
     wrong_answers = Column(Integer, default=0)
     skipped_answers = Column(Integer, default=0)
+
+    score = Column(Integer, default=0)
 
     percentage = Column(Integer, default=0)
 
@@ -56,7 +64,7 @@ class ExamAttempt(Base):
 
     device_fingerprint = Column(String, nullable=True)
 
-    leaderboard_processed = Column(Boolean, default=False)
+    leaderboard_processed = Column(Boolean, default=False, index=True)
 
     # العلاقات
     template = relationship(
