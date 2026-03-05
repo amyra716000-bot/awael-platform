@@ -55,9 +55,7 @@ class User(Base):
         nullable=True
     )
 
-    stage = relationship(
-        "Stage"
-    )
+    stage = relationship("Stage")
 
     # =========================
     # الاشتراكات
@@ -85,6 +83,16 @@ class User(Base):
 
     leaderboards = relationship(
         "Leaderboard",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+
+    # =========================
+    # تقدم الطالب
+    # =========================
+
+    progress = relationship(
+        "StudentProgress",
         back_populates="user",
         cascade="all, delete-orphan"
     )
