@@ -1,54 +1,28 @@
-from sqlalchemy import Column, Integer, ForeignKey, String, Boolean, Text, DateTime
-from sqlalchemy.orm import relationship
-from datetime import datetime
-from app.database.session import Base
-
-
 class ExamAttemptQuestion(Base):
     __tablename__ = "exam_attempt_questions"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
 
-    # المحاولة المرتبط بها السؤال
-    exam_attempt_id = Column(
+    attempt_id = Column(
         Integer,
-        ForeignKey("exam_attempts.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True
+        ForeignKey("exam_attempts.id")
     )
 
-    # معرف السؤال الأصلي من بنك الأسئلة
-    question_id = Column(Integer, nullable=True, index=True)
+    question_id = Column(
+        Integer,
+        ForeignKey("questions.id")
+    )
 
-    # نص السؤال
-    question_text = Column(Text, nullable=False)
+    user_answer = Column(String)
 
-    # نوع السؤال
-    question_type = Column(String, nullable=False)
+    is_correct = Column(Boolean)
 
-    # الخيارات (في حالة الاختيارات)
-    options_json = Column(Text, nullable=True)
-
-    # الجواب الصحيح
-    correct_answer = Column(String, nullable=False)
-
-    # درجة السؤال
-    question_degree = Column(Integer, default=1)
-
-    # ترتيب السؤال داخل الامتحان
-    question_order = Column(Integer, default=0)
-
-    # إجابة الطالب
-    selected_answer = Column(String, nullable=True)
-
-    # هل الإجابة صحيحة
-    is_correct = Column(Boolean, nullable=True)
-
-    # وقت الإجابة
-    answered_at = Column(DateTime, nullable=True)
-
-    # العلاقة مع محاولة الامتحان
-    exam_attempt = relationship(
+    attempt = relationship(
         "ExamAttempt",
         back_populates="questions"
+    )
+
+    question = relationship(
+        "Question",
+        back_populates="exam_attempt_questions"
     )
