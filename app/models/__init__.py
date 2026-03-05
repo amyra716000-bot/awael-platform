@@ -1,19 +1,27 @@
 from .user import User
+
 from .stage import Stage
 from .branch import Branch
 from .subject import Subject
 from .chapter import Chapter
 from .section import Section
+
 from .question import Question
+from .question_type import QuestionType
+
 from .plan import Plan
 from .subscription import Subscription
+
 from .exam_template import ExamTemplate
 from .exam_attempt import ExamAttempt
 from .exam_attempt_question import ExamAttemptQuestion
+
 from .leaderboard import Leaderboard
-from .question_statistics import QuestionStatistics
+
 from .progress import StudentProgress
+
+# Optional analytics
+from .question_statistics import QuestionStatistics
 from .favorite import Favorite
 from .content_view import ContentView
 from .monthly_reset import MonthlyReset
-from .question_type import QuestionType
