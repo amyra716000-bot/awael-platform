@@ -256,3 +256,25 @@ def student_dashboard(
         "strongest_section": strongest.section_id,
         "weakest_section": weakest.section_id
             }
+
+@router.get("/leaderboard")
+def get_leaderboard(
+    limit: int = 20,
+    db: Session = Depends(get_db)
+):
+    users = (
+        db.query(User)
+        .order_by(User.xp_points.desc())
+        .limit(limit)
+        .all()
+    )
+
+    return [
+        {
+            "rank": i + 1,
+            "name": user.name,
+            "xp_points": user.xp_points,
+            "level": user.level
+        }
+        for i, user in enumerate(users)
+    ]
