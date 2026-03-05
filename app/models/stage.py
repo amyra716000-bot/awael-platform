@@ -7,8 +7,13 @@ class Stage(Base):
     __tablename__ = "stages"
 
     id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
 
-    name = Column(String, nullable=False, unique=True)
+    branches = relationship(
+        "Branch",
+        back_populates="stage",
+        cascade="all, delete-orphan"
+    )
 
     subjects = relationship(
         "Subject",
