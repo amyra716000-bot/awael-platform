@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database.session import Base
+from app.models.question_category import question_category_link
 
 
 class Question(Base):
@@ -42,6 +43,10 @@ class Question(Base):
         nullable=False
     )
 
+    # =========================
+    # العلاقات
+    # =========================
+
     section = relationship(
         "Section",
         back_populates="questions"
@@ -49,5 +54,11 @@ class Question(Base):
 
     type = relationship(
         "QuestionType",
+        back_populates="questions"
+    )
+
+    categories = relationship(
+        "QuestionCategory",
+        secondary=question_category_link,
         back_populates="questions"
     )
