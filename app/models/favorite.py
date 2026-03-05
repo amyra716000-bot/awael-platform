@@ -10,12 +10,14 @@ class Favorite(Base):
 
     user_id = Column(
         Integer,
-        ForeignKey("users.id", ondelete="CASCADE")
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False
     )
 
     question_id = Column(
         Integer,
-        ForeignKey("questions.id", ondelete="CASCADE")
+        ForeignKey("questions.id", ondelete="CASCADE"),
+        nullable=False
     )
 
     user = relationship(
