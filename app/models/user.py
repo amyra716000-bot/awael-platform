@@ -18,6 +18,9 @@ class User(Base):
     xp_points = Column(Integer, default=0)
 level = Column(Integer, default=1)
 
+streak_days = Column(Integer, default=0)
+last_streak_date = Column(DateTime, nullable=True)
+
     # =========================
     # المرحلة الدراسية (مهم)
     # =========================
