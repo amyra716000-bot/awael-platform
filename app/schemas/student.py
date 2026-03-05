@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
+from app.models.section import SectionType
 
 
 # =========================
@@ -35,6 +36,7 @@ class ChapterOut(BaseModel):
 class SectionOut(BaseModel):
     id: int
     name: str
+    type: SectionType
     chapter_id: int
 
     class Config:
@@ -45,6 +47,9 @@ class QuestionOut(BaseModel):
     id: int
     content: str
     section_id: int
+    type_id: int
+    is_ministry: bool
+    ministry_year: Optional[int]
 
     class Config:
         from_attributes = True
