@@ -1,9 +1,8 @@
 import os
 from fastapi import FastAPI
-from sqlalchemy import text
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.database.session import engine, Base
-from fastapi.middleware.cors import CORSMiddleware
 
 # =========================
 # Rate Limiting
@@ -12,12 +11,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.middleware import SlowAPIMiddleware
 
-
-# =========================
-# Create Limiter
-# =========================
 limiter = Limiter(key_func=get_remote_address)
-
 
 # =========================
 # Create App
@@ -47,11 +41,10 @@ app.add_middleware(
 )
 
 # =========================
-# Add Rate Limit Middleware
+# Rate Limit
 # =========================
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
-
 
 # =========================
 # Health Check
@@ -75,31 +68,22 @@ def health():
 # =========================
 from app import models
 
-
 # =========================
 # Create Tables
 # =========================
 Base.metadata.create_all(bind=engine)
 
-
 # =========================
 # Import Routers
 # =========================
-from app.routes import (
-    auth,
-    stage,
-    setup,
-    plan,
-    subscription,
-    ai,
-    exam,
-)
+from app.routes import auth, stage, setup, plan, subscription, ai, exam
 
 from app.routes.question import router as question_router
 from app.routes.subject import router as subject_router
 from app.routes.chapter import router as chapter_router
 from app.routes.section import router as section_router
 from app.routes.student import router as student_router
+
 from app.admin_exam_templates import router as admin_exam_templates_router
 
 
