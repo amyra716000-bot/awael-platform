@@ -41,35 +41,38 @@ def start_exam_attempt(db: Session, user_id: int, template_id: int):
     if existing_attempt:
         raise HTTPException(status_code=400, detail="You already have an active exam")
 
-    if not template.section_id:
+    if not template.section_id and not getattr(template, "ministry_year", None):
         raise HTTPException(status_code=400, detail="Exam template has no section assigned")
 
-    # جلب الأسئلة عشوائياً
+    # ==========================================
+    # جلب الأسئلة
+    # ==========================================
     query = db.query(Question)
 
-# اذا الامتحان وزاري
-if getattr(template, "ministry_year", None):
-    query = query.filter(
-        Question.is_ministry == True,
-        Question.ministry_year == template.ministry_year
-    )
+    # اذا الامتحان وزاري
+    if getattr(template, "ministry_year", None):
 
-    if getattr(template, "ministry_round", None):
         query = query.filter(
-            Question.ministry_round == template.ministry_round
+            Question.is_ministry == True,
+            Question.ministry_year == template.ministry_year
         )
 
-# اذا امتحان عادي
-else:
-    query = query.filter(
-        Question.section_id == template.section_id
-    )
+        if getattr(template, "ministry_round", None):
+            query = query.filter(
+                Question.ministry_round == template.ministry_round
+            )
 
-questions = (
-    query
-    .order_by(func.random())
-    .limit(template.total_questions)
-    .all()
+    # اذا امتحان عادي
+    else:
+        query = query.filter(
+            Question.section_id == template.section_id
+        )
+
+    questions = (
+        query
+        .order_by(func.random())
+        .limit(template.total_questions)
+        .all()
     )
 
     if len(questions) < template.total_questions:
@@ -78,6 +81,9 @@ questions = (
             detail="Not enough questions in this section"
         )
 
+    # ==========================================
+    # إنشاء محاولة الامتحان
+    # ==========================================
     attempt = ExamAttempt(
         user_id=user_id,
         template_id=template.id,
