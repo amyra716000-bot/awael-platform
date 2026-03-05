@@ -56,7 +56,9 @@ def start_exam_attempt(db: Session, user_id: int, template_id: int):
     # ==========================================
     # جلب الأسئلة
     # ==========================================
-    query = db.query(Question)
+    query = db.query(Question).filter(
+        Question.is_active == True
+    )
 
     # امتحان وزاري
     if getattr(template, "ministry_year", None):
@@ -108,7 +110,9 @@ def start_exam_attempt(db: Session, user_id: int, template_id: int):
     db.add(attempt)
     db.flush()
 
+    # ==========================================
     # إنشاء أسئلة الامتحان
+    # ==========================================
     for q in questions:
 
         degree = getattr(q, "degree", 1)
