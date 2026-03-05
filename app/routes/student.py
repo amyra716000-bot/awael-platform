@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -11,7 +11,6 @@ from app.models.subject import Subject
 from app.models.chapter import Chapter
 from app.models.section import Section
 from app.models.question import Question
-from app.models.progress import StudentProgress
 
 from app.schemas.student import (
     StageOut,
@@ -32,7 +31,9 @@ def get_stages(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return db.query(Stage).all()
+    return db.query(Stage).filter(
+        Stage.is_active == True
+    ).order_by(Stage.order).all()
 
 
 # =========================
@@ -44,9 +45,16 @@ def get_subjects(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+
+    stage = db.query(Stage).filter(Stage.id == stage_id).first()
+
+    if not stage:
+        raise HTTPException(status_code=404, detail="Stage not found")
+
     return db.query(Subject).filter(
-        Subject.stage_id == stage_id
-    ).all()
+        Subject.stage_id == stage_id,
+        Subject.is_active == True
+    ).order_by(Subject.order).all()
 
 
 # =========================
@@ -58,9 +66,16 @@ def get_chapters(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+
+    subject = db.query(Subject).filter(Subject.id == subject_id).first()
+
+    if not subject:
+        raise HTTPException(status_code=404, detail="Subject not found")
+
     return db.query(Chapter).filter(
-        Chapter.subject_id == subject_id
-    ).all()
+        Chapter.subject_id == subject_id,
+        Chapter.is_active == True
+    ).order_by(Chapter.order).all()
 
 
 # =========================
@@ -72,6 +87,7 @@ def get_sections(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+
     return db.query(Section).filter(
         Section.chapter_id == chapter_id
     ).order_by(Section.order).all()
@@ -86,8 +102,10 @@ def get_questions(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+
     return db.query(Question).filter(
-        Question.section_id == section_id
+        Question.section_id == section_id,
+        Question.is_active == True
     ).all()
 
 
@@ -96,7 +114,8 @@ def get_questions(
 # =========================
 @router.get("/leaderboard")
 def leaderboard(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
 
     users = (
@@ -117,4 +136,3 @@ def leaderboard(
         })
 
     return data
-    
