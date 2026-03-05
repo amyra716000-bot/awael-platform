@@ -286,12 +286,3 @@ def get_leaderboard(
 
     return leaderboard
 
-    return [
-        {
-            "rank": i + 1,
-            "name": user.name,
-            "xp_points": user.xp_points,
-            "level": user.level
-        }
-        for i, user in enumerate(users)
-    ]
