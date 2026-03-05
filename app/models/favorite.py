@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, UniqueConstraint, Index
+from sqlalchemy import Column, Integer, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.database.session import Base
 
@@ -6,21 +6,18 @@ from app.database.session import Base
 class Favorite(Base):
     __tablename__ = "favorites"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
 
     user_id = Column(
         Integer,
-        ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False
+        ForeignKey("users.id", ondelete="CASCADE")
     )
 
     question_id = Column(
         Integer,
-        ForeignKey("questions.id", ondelete="CASCADE"),
-        nullable=False
+        ForeignKey("questions.id", ondelete="CASCADE")
     )
 
-    # العلاقات
     user = relationship(
         "User",
         back_populates="favorites"
@@ -31,19 +28,6 @@ class Favorite(Base):
         back_populates="favorites"
     )
 
-    # القيود
     __table_args__ = (
-
-        # منع التكرار
-        UniqueConstraint(
-            "user_id",
-            "question_id",
-            name="unique_user_question"
-        ),
-
-        # تحسين الأداء
-        Index(
-            "idx_user_favorites",
-            "user_id"
-        ),
+        UniqueConstraint("user_id", "question_id"),
     )
