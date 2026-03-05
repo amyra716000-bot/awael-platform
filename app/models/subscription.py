@@ -56,3 +56,5 @@ class Subscription(Base):
         "Plan",
         back_populates="subscriptions"
     )
+
+user = relationship("User", back_populates="subscriptions")
