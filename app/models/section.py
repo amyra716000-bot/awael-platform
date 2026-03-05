@@ -23,17 +23,29 @@ class SectionType(str, enum.Enum):
     ministry_essay = "ministry_essay"
     ministry_grammar = "ministry_grammar"
 
+
 class Section(Base):
     __tablename__ = "sections"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
+
+    name = Column(String, nullable=False, index=True)
 
     type = Column(Enum(SectionType), nullable=False)
 
-    chapter_id = Column(Integer, ForeignKey("chapters.id"))
+    chapter_id = Column(
+        Integer,
+        ForeignKey("chapters.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
 
     order = Column(Integer, default=0)
 
     chapter = relationship("Chapter", backref="sections")
-    questions = relationship("Question")
+
+    questions = relationship(
+        "Question",
+        back_populates="section",
+        cascade="all, delete-orphan"
+    )
