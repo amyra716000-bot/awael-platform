@@ -69,7 +69,10 @@ class Question(Base):
         nullable=False
     )
 
-    section = relationship("Section")
+    section = relationship(
+    "Section",
+    back_populates="questions"
+    )
 
     type = relationship(
         "QuestionType",
