@@ -43,10 +43,6 @@ class Question(Base):
         nullable=False
     )
 
-    # =========================
-    # العلاقات
-    # =========================
-
     section = relationship(
         "Section",
         back_populates="questions"
@@ -57,14 +53,9 @@ class Question(Base):
         back_populates="questions"
     )
 
-    categories = relationship(
-        "QuestionCategory",
-        secondary=question_category_link,
-        back_populates="questions"
+    # علاقة المفضلة
+    favorites = relationship(
+        "Favorite",
+        back_populates="question",
+        cascade="all, delete-orphan"
     )
-
-favorites = relationship(
-    "Favorite",
-    back_populates="question",
-    cascade="all, delete-orphan"
-)
