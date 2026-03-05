@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, ForeignKey, String, Boolean, Text
+from sqlalchemy import Column, Integer, ForeignKey, String, Boolean, Text, DateTime
 from sqlalchemy.orm import relationship
+from datetime import datetime
 from app.database.session import Base
 
 
@@ -12,8 +13,12 @@ class ExamAttemptQuestion(Base):
     exam_attempt_id = Column(
         Integer,
         ForeignKey("exam_attempts.id", ondelete="CASCADE"),
-        nullable=False
+        nullable=False,
+        index=True
     )
+
+    # معرف السؤال الأصلي من بنك الأسئلة
+    question_id = Column(Integer, nullable=True, index=True)
 
     # نص السؤال
     question_text = Column(Text, nullable=False)
@@ -30,11 +35,17 @@ class ExamAttemptQuestion(Base):
     # درجة السؤال
     question_degree = Column(Integer, default=1)
 
+    # ترتيب السؤال داخل الامتحان
+    question_order = Column(Integer, default=0)
+
     # إجابة الطالب
     selected_answer = Column(String, nullable=True)
 
     # هل الإجابة صحيحة
     is_correct = Column(Boolean, nullable=True)
+
+    # وقت الإجابة
+    answered_at = Column(DateTime, nullable=True)
 
     # العلاقة مع محاولة الامتحان
     exam_attempt = relationship(
