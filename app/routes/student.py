@@ -5,6 +5,7 @@ from typing import List
 from app.database.session import get_db
 from app.core.security import get_current_user
 from app.models.user import User
+from app.models.user import User
 from app.models.stage import Stage
 from app.models.subject import Subject
 from app.models.chapter import Chapter
