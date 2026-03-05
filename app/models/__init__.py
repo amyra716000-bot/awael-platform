@@ -4,6 +4,8 @@
 
 from .user import User
 
+from .favorite import Favorite
+
 from .stage import Stage
 from .branch import Branch
 from .subject import Subject
