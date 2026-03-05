@@ -1,6 +1,12 @@
 from sqlalchemy import Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database.session import Base
+from enum import Enum
+
+class AttemptStatus(str, Enum):
+    started = "started"
+    finished = "finished"
+    cancelled = "cancelled"
 
 
 class ExamAttempt(Base):
