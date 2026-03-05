@@ -9,7 +9,6 @@ class SectionType(str, enum.Enum):
     # =========================
     # الاقسام العادية
     # =========================
-
     definitions = "definitions"
     explanations = "explanations"
     problems = "problems"
@@ -21,7 +20,6 @@ class SectionType(str, enum.Enum):
     # =========================
     # الاقسام الوزارية
     # =========================
-
     ministry_definitions = "ministry_definitions"
     ministry_reasons = "ministry_reasons"
     ministry_problems = "ministry_problems"
@@ -68,10 +66,7 @@ class Section(Base):
 
     chapter = relationship(
         "Chapter",
-        chapter = relationship(
-    "Chapter",
-    back_populates="sections"
-        )
+        back_populates="sections",
         lazy="selectin"
     )
 
