@@ -31,6 +31,9 @@ def start_exam_attempt(db: Session, user_id: int, template_id: int):
     if template.end_date and now > template.end_date:
         raise HTTPException(status_code=400, detail="Exam expired")
 
+    if template.total_questions <= 0:
+        raise HTTPException(status_code=400, detail="Invalid exam question count")
+
     # منع وجود امتحان مفتوح
     existing_attempt = db.query(ExamAttempt).filter(
         ExamAttempt.user_id == user_id,
@@ -39,17 +42,23 @@ def start_exam_attempt(db: Session, user_id: int, template_id: int):
     ).first()
 
     if existing_attempt:
-        raise HTTPException(status_code=400, detail="You already have an active exam")
+        raise HTTPException(
+            status_code=400,
+            detail="You already have an active exam"
+        )
 
     if not template.section_id and not getattr(template, "ministry_year", None):
-        raise HTTPException(status_code=400, detail="Exam template has no section assigned")
+        raise HTTPException(
+            status_code=400,
+            detail="Exam template has no section assigned"
+        )
 
     # ==========================================
     # جلب الأسئلة
     # ==========================================
     query = db.query(Question)
 
-    # اذا الامتحان وزاري
+    # امتحان وزاري
     if getattr(template, "ministry_year", None):
 
         query = query.filter(
@@ -62,7 +71,7 @@ def start_exam_attempt(db: Session, user_id: int, template_id: int):
                 Question.ministry_round == template.ministry_round
             )
 
-    # اذا امتحان عادي
+    # امتحان عادي
     else:
         query = query.filter(
             Question.section_id == template.section_id
@@ -93,7 +102,7 @@ def start_exam_attempt(db: Session, user_id: int, template_id: int):
         correct_answers=0,
         wrong_answers=0,
         skipped_answers=0,
-        percentage=0,
+        percentage=0
     )
 
     db.add(attempt)
@@ -139,10 +148,10 @@ def finish_exam_attempt(db: Session, attempt: ExamAttempt):
     ).all()
 
     correct_answers = 0
-    total_degree = 0
-    correct_degree = 0
     wrong_answers = 0
     skipped_answers = 0
+    total_degree = 0
+    correct_degree = 0
 
     for q in questions:
 
