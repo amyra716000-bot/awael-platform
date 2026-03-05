@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database.session import Base
 
@@ -8,58 +8,23 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    # =========================
-    # معلومات الحساب
-    # =========================
-
     name = Column(String, nullable=True)
 
-    email = Column(
-        String,
-        unique=True,
-        index=True,
-        nullable=False
-    )
+    email = Column(String, unique=True, index=True, nullable=False)
 
-    hashed_password = Column(
-        String,
-        nullable=False
-    )
+    hashed_password = Column(String, nullable=False)
 
-    role = Column(
-        String,
-        default="user",
-        index=True
-    )
+    role = Column(String, default="user")
 
-    is_active = Column(
-        Boolean,
-        default=True
-    )
-
-    # =========================
-    # نظام النقاط
-    # =========================
+    is_active = Column(Boolean, default=True)
 
     xp_points = Column(Integer, default=0)
 
     level = Column(Integer, default=1)
 
-    # =========================
-    # المرحلة الدراسية
-    # =========================
-
-    stage_id = Column(
-        Integer,
-        ForeignKey("stages.id"),
-        nullable=True
-    )
+    stage_id = Column(Integer, ForeignKey("stages.id"))
 
     stage = relationship("Stage")
-
-    # =========================
-    # الاشتراكات
-    # =========================
 
     subscriptions = relationship(
         "Subscription",
@@ -67,19 +32,11 @@ class User(Base):
         cascade="all, delete-orphan"
     )
 
-    # =========================
-    # محاولات الامتحان
-    # =========================
-
     exam_attempts = relationship(
         "ExamAttempt",
         back_populates="user",
         cascade="all, delete"
     )
-
-    # =========================
-    # المفضلة
-    # =========================
 
     favorites = relationship(
         "Favorite",
@@ -87,12 +44,14 @@ class User(Base):
         cascade="all, delete-orphan"
     )
 
-# =========================
-# لوحة المتصدرين
-# =========================
+    leaderboards = relationship(
+        "Leaderboard",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
 
-leaderboards = relationship(
-    "Leaderboard",
-    back_populates="user",
-    cascade="all, delete-orphan"
-)
+    progress = relationship(
+        "StudentProgress",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
