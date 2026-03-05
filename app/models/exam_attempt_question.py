@@ -1,3 +1,8 @@
+from sqlalchemy import Column, Integer, Boolean, String, ForeignKey
+from sqlalchemy.orm import relationship
+from app.database.session import Base
+
+
 class ExamAttemptQuestion(Base):
     __tablename__ = "exam_attempt_questions"
 
