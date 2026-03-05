@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Table
+from sqlalchemy import Column, Integer, String, ForeignKey, Table, Index
 from sqlalchemy.orm import relationship
 from app.database.session import Base
 
@@ -9,18 +9,23 @@ from app.database.session import Base
 question_category_link = Table(
     "question_category_link",
     Base.metadata,
+
     Column(
         "question_id",
         Integer,
         ForeignKey("questions.id", ondelete="CASCADE"),
         primary_key=True
     ),
+
     Column(
         "category_id",
         Integer,
         ForeignKey("question_categories.id", ondelete="CASCADE"),
         primary_key=True
     ),
+
+    # تحسين الأداء
+    Index("idx_question_category", "question_id", "category_id")
 )
 
 
@@ -31,7 +36,7 @@ class QuestionCategory(Base):
 
     # اسم التصنيف
     name = Column(
-        String,
+        String(100),
         unique=True,
         nullable=False,
         index=True
@@ -41,5 +46,6 @@ class QuestionCategory(Base):
     questions = relationship(
         "Question",
         secondary=question_category_link,
-        back_populates="categories"
+        back_populates="categories",
+        lazy="selectin"
     )
