@@ -8,6 +8,9 @@ from app.core.subscription_checker import check_ai_access
 router = APIRouter(prefix="/ai", tags=["AI"])
 
 
+# ==========================================
+# ASK AI
+# ==========================================
 @router.post("/ask")
 def ask_ai(
     question: str,
@@ -15,11 +18,18 @@ def ask_ai(
     current_user=Depends(get_current_user)
 ):
 
-    # تحقق من السؤال
-    if not question or question.strip() == "":
+    if not question:
         raise HTTPException(
             status_code=400,
             detail="Question cannot be empty"
+        )
+
+    question = question.strip()
+
+    if len(question) < 3:
+        raise HTTPException(
+            status_code=400,
+            detail="Question too short"
         )
 
     if len(question) > 1000:
@@ -28,13 +38,19 @@ def ask_ai(
             detail="Question too long"
         )
 
-    # فحص الاشتراك
+    # ==========================================
+    # CHECK SUBSCRIPTION
+    # ==========================================
     subscription, plan, remaining = check_ai_access(db, current_user)
 
-    # Mock AI (حالياً)
+    # ==========================================
+    # AI RESPONSE (MOCK MODE)
+    # ==========================================
     ai_answer = f"🤖 AI (Mock Mode): سؤالك كان: {question}"
 
-    # زيادة العداد
+    # ==========================================
+    # UPDATE USAGE
+    # ==========================================
     if subscription:
         subscription.ai_used_today += 1
     else:
