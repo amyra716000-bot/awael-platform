@@ -10,27 +10,36 @@ FREE_AI_LIMIT = int(os.getenv("FREE_AI_LIMIT", 3))
 
 
 # ==========================================
-# فحص الاشتراك العام
+# GET ACTIVE SUBSCRIPTION
 # ==========================================
 def get_active_subscription(db: Session, user: User):
 
-    subscription = db.query(Subscription).filter(
-        Subscription.user_id == user.id,
-        Subscription.is_active == True
-    ).first()
+    subscription = (
+        db.query(Subscription)
+        .filter(
+            Subscription.user_id == user.id,
+            Subscription.is_active == True
+        )
+        .order_by(Subscription.start_date.desc())
+        .first()
+    )
 
     if not subscription:
         return None, None
 
-    # انتهاء الاشتراك
-    if subscription.end_date and subscription.end_date < datetime.utcnow():
+    now = datetime.utcnow()
+
+    # لم يبدأ الاشتراك بعد
+    if subscription.start_date and subscription.start_date > now:
+        return None, None
+
+    # انتهى الاشتراك
+    if subscription.end_date and subscription.end_date < now:
         subscription.is_active = False
         db.commit()
         return None, None
 
-    plan = db.query(Plan).filter(
-        Plan.id == subscription.plan_id
-    ).first()
+    plan = subscription.plan
 
     if not plan:
         return None, None
@@ -39,14 +48,14 @@ def get_active_subscription(db: Session, user: User):
 
 
 # ==========================================
-# فحص AI Usage
+# CHECK AI ACCESS
 # ==========================================
 def check_ai_access(db: Session, user: User):
 
     subscription, plan = get_active_subscription(db, user)
 
     # ==========================================
-    # اشتراك مدفوع
+    # PAID USER
     # ==========================================
     if subscription and plan:
 
@@ -75,12 +84,12 @@ def check_ai_access(db: Session, user: User):
             )
 
         remaining = plan.daily_ai_limit - subscription.ai_used_today
+
         return subscription, plan, remaining
 
     # ==========================================
-    # Free Mode
+    # FREE USER
     # ==========================================
-
     today = datetime.utcnow().date()
 
     if not user.free_ai_last_reset:
