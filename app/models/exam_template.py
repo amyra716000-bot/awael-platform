@@ -22,13 +22,28 @@ class ExamTemplate(Base):
     type = Column(Enum(ExamType), nullable=False)
 
     # المرحلة
-    stage_id = Column(Integer, ForeignKey("stages.id"), nullable=False)
+    stage_id = Column(
+        Integer,
+        ForeignKey("stages.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True
+    )
 
     # المادة
-    subject_id = Column(Integer, ForeignKey("subjects.id"), nullable=True)
+    subject_id = Column(
+        Integer,
+        ForeignKey("subjects.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True
+    )
 
-    # القسم (اختياري)
-    section_id = Column(Integer, ForeignKey("sections.id"), nullable=True)
+    # القسم
+    section_id = Column(
+        Integer,
+        ForeignKey("sections.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True
+    )
 
     # عدد الاسئلة
     total_questions = Column(Integer, nullable=False)
@@ -38,6 +53,12 @@ class ExamTemplate(Base):
 
     # نسبة النجاح
     passing_score = Column(Integer, default=50)
+
+    # مستوى الامتحان
+    difficulty = Column(String(10), default="medium")
+
+    # ترتيب الامتحان
+    order = Column(Integer, default=0)
 
     # حالة الامتحان
     is_active = Column(Boolean, default=True)
@@ -63,6 +84,13 @@ class ExamTemplate(Base):
 
     # اظهار الاجوبة بعد الانتهاء
     show_answers_after_finish = Column(Boolean, default=False)
+
+    # ======================
+    # الامتحانات الوزارية
+    # ======================
+
+    ministry_year = Column(Integer, nullable=True)
+    ministry_round = Column(String(20), nullable=True)
 
     # العلاقات
     stage = relationship("Stage")
