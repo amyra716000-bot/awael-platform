@@ -79,7 +79,7 @@ def get_exam_questions(
 
     attempt = db.query(ExamAttempt).filter(
         ExamAttempt.id == attempt_id,
-        ExamAttempt.user_id == user.id
+        ExamAttempt.user_id == user["user_id"]
     ).first()
 
     if not attempt:
