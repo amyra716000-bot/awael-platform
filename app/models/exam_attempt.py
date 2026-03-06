@@ -27,6 +27,8 @@ class ExamAttempt(Base):
     total_degree = Column(Integer, default=0)
     
     wrong_answers = Column(Integer, default=0)
+
+    skipped_answers = Column(Integer, default=0)
     
     skipped_answers = Column(Integer, default=0)
 
