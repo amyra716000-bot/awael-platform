@@ -14,6 +14,7 @@ class QuestionCreate(BaseModel):
 
     is_ministry: bool = False
     ministry_year: Optional[int] = None
+    ministry_round: Optional[str] = None
 
     is_important: bool = False
 
@@ -33,6 +34,7 @@ class QuestionResponse(BaseModel):
 
     is_ministry: bool
     ministry_year: Optional[int]
+    ministry_round: Optional[str]
 
     is_important: bool
 
