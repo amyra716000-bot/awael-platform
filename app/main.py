@@ -3,7 +3,8 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.database.session import engine, Base
+from app.database.session import engine, Base, SessionLocal
+from app.database.seed import seed_data
 
 # =========================
 # Rate Limiting
@@ -11,7 +12,6 @@ from app.database.session import engine, Base
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.middleware import SlowAPIMiddleware
-
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -33,7 +33,7 @@ app = FastAPI(
 origins = [
     "http://localhost:3000",
     "http://localhost:5173",
-    "*",  # يسمح للتطبيقات والبوت
+    "*"
 ]
 
 app.add_middleware(
@@ -50,6 +50,10 @@ app.add_middleware(
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
 
+# =========================
+# Import Models
+# =========================
+from app import models
 
 # =========================
 # Startup Event
@@ -60,33 +64,27 @@ def startup():
     # إنشاء الجداول
     Base.metadata.create_all(bind=engine)
 
+    # تشغيل seed data
+    db = SessionLocal()
+    seed_data(db)
+    db.close()
 
 # =========================
 # Health Check
 # =========================
 @app.get("/")
 def root():
-
     return {
         "status": "running",
         "platform": "Awael Platform",
         "version": "1.0.0"
     }
 
-
 @app.get("/health")
 def health():
-
     return {
         "status": "healthy"
     }
-
-
-# =========================
-# Import Models
-# =========================
-from app import models
-
 
 # =========================
 # Import Routers
@@ -108,7 +106,6 @@ from app.routes.section import router as section_router
 from app.routes.student import router as student_router
 
 from app.admin_exam_templates import router as admin_exam_templates_router
-
 
 # =========================
 # Register Routers
