@@ -12,6 +12,8 @@ class QuestionCreate(BaseModel):
     section_id: int
     type_id: int
 
+    difficulty: Optional[str] = "medium"
+
     is_ministry: bool = False
     ministry_year: Optional[int] = None
     ministry_round: Optional[str] = None
@@ -31,6 +33,8 @@ class QuestionResponse(BaseModel):
 
     section_id: int
     type_id: int
+
+    difficulty: Optional[str]
 
     is_ministry: bool
     ministry_year: Optional[int]
