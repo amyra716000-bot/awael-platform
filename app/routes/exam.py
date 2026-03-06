@@ -107,7 +107,7 @@ def get_exam_questions(
 
     remaining_seconds = None
 
-    if template.duration_minutes and attempt.finished == False:
+    if template.duration_minutes and not attempt.is_finished:
 
         end_time = attempt.started_at + timedelta(minutes=template.duration_minutes)
         remaining = (end_time - datetime.utcnow()).total_seconds()
