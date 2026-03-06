@@ -68,3 +68,13 @@ class Question(Base):
         secondary=question_category_link,
         back_populates="questions"
     )
+
+    # ---------------------------
+    # Question Options (NEW)
+    # ---------------------------
+    options = relationship(
+        "QuestionOption",
+        back_populates="question",
+        cascade="all, delete",
+        order_by="QuestionOption.order"
+    )
