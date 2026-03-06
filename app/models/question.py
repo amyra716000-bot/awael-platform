@@ -20,6 +20,8 @@ class Question(Base):
     is_important = Column(Boolean, default=False)
 
     is_ministry = Column(Boolean, default=False)
+    
+    is_active = Column(Boolean, default=True)
 
     ministry_year = Column(Integer)
 
