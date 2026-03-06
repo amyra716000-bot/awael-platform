@@ -35,3 +35,4 @@ class QuestionResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
