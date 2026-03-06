@@ -41,7 +41,7 @@ def start_exam(
         )
 
     attempt = ExamAttempt(
-        user_id=user["id"],
+        user_id=user["user_id"],
         template_id=template.id,
         started_at=datetime.utcnow(),
         is_finished=False
@@ -79,7 +79,7 @@ def get_exam_questions(
 
     attempt = db.query(ExamAttempt).filter(
         ExamAttempt.id == attempt_id,
-        ExamAttempt.user_id == user["id"]
+        ExamAttempt.user_id == user["user_id"]
     ).first()
 
     if not attempt:
@@ -157,7 +157,7 @@ def finish_exam(
 
     attempt = db.query(ExamAttempt).filter(
         ExamAttempt.id == attempt_id,
-        ExamAttempt.user_id == user["id"]
+        ExamAttempt.user_id == user["user_id"]
     ).first()
 
     if not attempt:
