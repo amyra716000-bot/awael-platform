@@ -60,3 +60,7 @@ class QuestionOptionCreate(BaseModel):
     text: str
     is_correct: bool = False
     order: int = 1
+
+
+class AnswerRequest(BaseModel):
+    option_id: int
