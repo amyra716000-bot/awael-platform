@@ -8,7 +8,11 @@ from app.models.section import Section
 from app.models.question_type import QuestionType
 from app.models.question_option import QuestionOption
 
-from app.schemas.question import QuestionCreate, QuestionOptionCreate
+from app.schemas.question import (
+    QuestionCreate,
+    QuestionOptionCreate,
+    QuestionResponse
+)
 
 from app.core.security import get_current_admin, get_current_user
 
@@ -100,7 +104,7 @@ def create_question_option(
 # =========================
 # GET SINGLE QUESTION
 # =========================
-@router.get("/{question_id}")
+@router.get("/{question_id}", response_model=QuestionResponse)
 def get_question(
     question_id: int,
     db: Session = Depends(get_db),
