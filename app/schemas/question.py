@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
 
 
@@ -12,22 +12,41 @@ class QuestionOptionResponse(BaseModel):
         from_attributes = True
 
 
+class QuestionCreate(BaseModel):
+    content: str = Field(min_length=1)
+    answer: str = Field(min_length=1)
+
+    section_id: int
+    type_id: int
+
+    difficulty: str = "medium"
+
+    is_ministry: bool = False
+    ministry_year: Optional[int] = None
+    ministry_round: Optional[str] = None
+
+    is_important: bool = False
+
+    category_ids: List[int] = Field(default_factory=list)
+
+
 class QuestionResponse(BaseModel):
     id: int
     content: str
     answer: str
+
     explanation: Optional[str]
 
     difficulty: str
 
-    is_important: bool
-    is_ministry: bool
+    section_id: int
+    type_id: int
 
+    is_ministry: bool
     ministry_year: Optional[int]
     ministry_round: Optional[str]
 
-    section_id: int
-    type_id: int
+    is_important: bool
 
     degree: int
 
@@ -35,4 +54,3 @@ class QuestionResponse(BaseModel):
 
     class Config:
         from_attributes = True
-
