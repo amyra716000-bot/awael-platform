@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey
+from sqlalchemy import Column, Integer, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database.session import Base
 
@@ -8,19 +8,18 @@ class ExamAttemptQuestion(Base):
 
     id = Column(Integer, primary_key=True)
 
-    exam_attempt_id = Column(Integer, ForeignKey("exam_attempts.id"))
-
-    attempt_id = Column(Integer, ForeignKey("exam_attempts.id"))
-
-    question_id = Column(Integer, ForeignKey("questions.id"))
-
-    selected_option = Column(Integer)
-
-    attempt = relationship(
-        "ExamAttempt",
-        back_populates="questions"
+    exam_attempt_id = Column(
+        Integer,
+        ForeignKey("exam_attempts.id")
     )
 
-    question = relationship(
-        "Question"
+    question_id = Column(
+        Integer,
+        ForeignKey("questions.id")
     )
+
+    is_correct = Column(Boolean, nullable=True)
+
+    attempt = relationship("ExamAttempt")
+
+    question = relationship("Question")
