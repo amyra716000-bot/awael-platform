@@ -8,6 +8,8 @@ class ExamAttemptQuestion(Base):
 
     id = Column(Integer, primary_key=True)
 
+    exam_attempt_id = Column(Integer, ForeignKey("exam_attempts.id"))
+
     attempt_id = Column(Integer, ForeignKey("exam_attempts.id"))
 
     question_id = Column(Integer, ForeignKey("questions.id"))
