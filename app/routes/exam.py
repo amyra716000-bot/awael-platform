@@ -41,7 +41,7 @@ def start_exam(
         )
 
     attempt = ExamAttempt(
-        user_id = user["id"]
+        user_id=user["id"],
         template_id=template.id,
         started_at=datetime.utcnow(),
         is_finished=False
@@ -79,15 +79,11 @@ def get_exam_questions(
 
     attempt = db.query(ExamAttempt).filter(
         ExamAttempt.id == attempt_id,
-        ExamAttempt.user_id == user["user_id"]
+        ExamAttempt.user_id == user["id"]
     ).first()
 
     if not attempt:
         raise HTTPException(status_code=404, detail="Attempt not found")
-
-    template = db.query(ExamTemplate).filter(
-        ExamTemplate.id == attempt.template_id
-    ).first()
 
     questions = db.query(ExamAttemptQuestion).filter(
         ExamAttemptQuestion.attempt_id == attempt.id
@@ -161,7 +157,7 @@ def finish_exam(
 
     attempt = db.query(ExamAttempt).filter(
         ExamAttempt.id == attempt_id,
-        ExamAttempt.user_id == user.id
+        ExamAttempt.user_id == user["id"]
     ).first()
 
     if not attempt:
