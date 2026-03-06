@@ -258,3 +258,4 @@ def get_leaderboard(template_id: int, db: Session = Depends(get_db)):
         })
 
     return result
+
