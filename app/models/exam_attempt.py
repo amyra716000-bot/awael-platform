@@ -1,13 +1,14 @@
-from sqlalchemy import Column, Integer, ForeignKey
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, Enum
 from sqlalchemy.orm import relationship
+from datetime import datetime
+import enum
+
 from app.database.session import Base
-from enum import Enum
 
 
-class AttemptStatus(str, Enum):
-    started = "started"
+class AttemptStatus(str, enum.Enum):
+    in_progress = "in_progress"
     finished = "finished"
-    cancelled = "cancelled"
 
 
 class ExamAttempt(Base):
@@ -18,15 +19,13 @@ class ExamAttempt(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     template_id = Column(Integer, ForeignKey("exam_templates.id"))
 
-    score = Column(Integer)
+    status = Column(Enum(AttemptStatus), default=AttemptStatus.in_progress)
 
-    user = relationship(
-        "User",
-        back_populates="exam_attempts"
-    )
+    percentage = Column(Integer, default=0)
+    correct_answers = Column(Integer, default=0)
 
-    questions = relationship(
-        "ExamAttemptQuestion",
-        back_populates="attempt",
-        cascade="all, delete"
-    )
+    started_at = Column(DateTime, default=datetime.utcnow)
+    finished_at = Column(DateTime, nullable=True)
+
+    user = relationship("User")
+    template = relationship("ExamTemplate")
