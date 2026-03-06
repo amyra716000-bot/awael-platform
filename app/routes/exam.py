@@ -37,10 +37,10 @@ def start_exam(
 
     # منع وجود امتحان مفتوح
     existing_attempt = db.query(ExamAttempt).filter(
-        ExamAttempt.user_id == current_user.id,
-        ExamAttempt.template_id == template.id,
-        ExamAttempt.finished == False
-    ).first()
+    ExamAttempt.user_id == current_user.id,
+    ExamAttempt.template_id == template.id,
+    ExamAttempt.status == AttemptStatus.in_progress
+).first()
 
     if existing_attempt:
         return {
