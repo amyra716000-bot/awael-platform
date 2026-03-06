@@ -105,7 +105,6 @@ def get_questions(
 
     return db.query(Question).filter(
         Question.section_id == section_id,
-        Question.is_active == True
     ).all()
 
 
