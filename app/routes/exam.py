@@ -8,7 +8,7 @@ from app.core.security import get_current_user
 from app.core.subscription_checker import get_active_subscription
 
 from app.models.exam_template import ExamTemplate
-from app.models.exam_attempt import ExamAttempt, AttemptStatus
+from app.models.exam_attempt import ExamAttempt
 from app.models.exam_attempt_question import ExamAttemptQuestion
 
 from app.services.exam_service import start_exam_attempt, finish_exam_attempt
@@ -39,7 +39,7 @@ def start_exam(
     existing_attempt = db.query(ExamAttempt).filter(
         ExamAttempt.user_id == current_user.id,
         ExamAttempt.template_id == template.id,
-        ExamAttempt.status == AttemptStatus.in_progress
+        ExamAttempt.finished == False
     ).first()
 
     if existing_attempt:
@@ -107,13 +107,13 @@ def get_exam_questions(
 
     remaining_seconds = None
 
-    if template.duration_minutes and attempt.status == AttemptStatus.in_progress:
+    if template.duration_minutes and attempt.finished == False:
 
         end_time = attempt.started_at + timedelta(minutes=template.duration_minutes)
         remaining = (end_time - datetime.utcnow()).total_seconds()
 
         if remaining <= 0:
-            attempt.status = AttemptStatus.finished
+            attempt.finished = True
             attempt.finished_at = datetime.utcnow()
 
             attempt = finish_exam_attempt(db, attempt)
@@ -131,7 +131,7 @@ def get_exam_questions(
 
     return {
         "remaining_time_seconds": remaining_seconds,
-        "status": attempt.status,
+        "finished": attempt.finished,
         "questions": [
             {
                 "id": q.id,
@@ -175,7 +175,7 @@ def submit_answer(
     if not attempt or attempt.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not allowed")
 
-    if attempt.status != AttemptStatus.in_progress:
+    if attempt.finished:
         raise HTTPException(status_code=400, detail="Exam already finished")
 
     # منع تغيير الإجابة
@@ -208,7 +208,7 @@ def finish_exam(
     attempt = db.query(ExamAttempt).filter(
         ExamAttempt.id == attempt_id,
         ExamAttempt.user_id == current_user.id,
-        ExamAttempt.status == AttemptStatus.in_progress
+        ExamAttempt.finished == False
     ).first()
 
     if not attempt:
@@ -238,7 +238,7 @@ def get_leaderboard(template_id: int, db: Session = Depends(get_db)):
 
     attempts = db.query(ExamAttempt).filter(
         ExamAttempt.template_id == template_id,
-        ExamAttempt.status == AttemptStatus.finished
+        ExamAttempt.finished == True
     ).order_by(
         ExamAttempt.percentage.desc()
     ).limit(10).all()
