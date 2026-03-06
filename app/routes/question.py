@@ -6,7 +6,10 @@ from app.database.session import get_db
 from app.models.question import Question
 from app.models.section import Section
 from app.models.question_type import QuestionType
-from app.schemas.question import QuestionCreate
+from app.models.question_option import QuestionOption
+
+from app.schemas.question import QuestionCreate, QuestionOptionCreate
+
 from app.core.security import get_current_admin, get_current_user
 
 router = APIRouter(prefix="/questions", tags=["Questions"])
@@ -58,6 +61,40 @@ def create_question(
     db.refresh(new_question)
 
     return new_question
+
+
+# =========================
+# ADD OPTION TO QUESTION (ADMIN)
+# =========================
+@router.post("/{question_id}/options", dependencies=[Depends(get_current_admin)])
+def create_question_option(
+    question_id: int,
+    option: QuestionOptionCreate,
+    db: Session = Depends(get_db)
+):
+
+    question = db.query(Question).filter(
+        Question.id == question_id
+    ).first()
+
+    if not question:
+        raise HTTPException(
+            status_code=404,
+            detail="Question not found"
+        )
+
+    new_option = QuestionOption(
+        question_id=question_id,
+        text=option.text,
+        is_correct=option.is_correct,
+        order=option.order
+    )
+
+    db.add(new_option)
+    db.commit()
+    db.refresh(new_option)
+
+    return new_option
 
 
 # =========================
