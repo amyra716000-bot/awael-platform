@@ -10,7 +10,15 @@ class ExamAttemptQuestion(Base):
 
     attempt_id = Column(Integer, ForeignKey("exam_attempts.id"))
 
+    question_id = Column(Integer, ForeignKey("questions.id"))
+
+    selected_option = Column(Integer)
+
     attempt = relationship(
         "ExamAttempt",
         back_populates="questions"
+    )
+
+    question = relationship(
+        "Question"
     )
