@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, DateTime, Enum
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, Enum, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -31,6 +31,8 @@ class ExamAttempt(Base):
     skipped_answers = Column(Integer, default=0)
     
     skipped_answers = Column(Integer, default=0)
+
+    is_finished = Column(Boolean, default=False)
 
     started_at = Column(DateTime, default=datetime.utcnow)
     finished_at = Column(DateTime, nullable=True)
