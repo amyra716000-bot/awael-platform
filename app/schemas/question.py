@@ -1,46 +1,37 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import Optional, List
 
 
-# =========================
-# Create Question
-# =========================
-class QuestionCreate(BaseModel):
-    content: str = Field(min_length=1)
-    answer: str = Field(min_length=1)
+class QuestionOptionResponse(BaseModel):
+    id: int
+    text: str
+    is_correct: bool
+    order: int
 
-    section_id: int
-    type_id: int
-
-    difficulty: Optional[str] = "medium"
-
-    is_ministry: bool = False
-    ministry_year: Optional[int] = None
-    ministry_round: Optional[str] = None
-
-    is_important: bool = False
-
-    category_ids: List[int] = Field(default_factory=list)
+    class Config:
+        from_attributes = True
 
 
-# =========================
-# Response
-# =========================
 class QuestionResponse(BaseModel):
     id: int
     content: str
     answer: str
+    explanation: Optional[str]
+
+    difficulty: str
+
+    is_important: bool
+    is_ministry: bool
+
+    ministry_year: Optional[int]
+    ministry_round: Optional[str]
 
     section_id: int
     type_id: int
 
-    difficulty: Optional[str]
+    degree: int
 
-    is_ministry: bool
-    ministry_year: Optional[int]
-    ministry_round: Optional[str]
-
-    is_important: bool
+    options: List[QuestionOptionResponse] = []
 
     class Config:
         from_attributes = True
