@@ -1,9 +1,8 @@
-from sqlalchemy import Column, Integer, ForeignKey, DateTime, Enum
 from sqlalchemy.orm import relationship
-from datetime import datetime
-import enum
-
 from app.database.session import Base
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, Enum
+import enum
+from datetime import datetime
 
 
 class AttemptStatus(str, enum.Enum):
@@ -25,7 +24,11 @@ class ExamAttempt(Base):
     correct_answers = Column(Integer, default=0)
 
     started_at = Column(DateTime, default=datetime.utcnow)
-    finished_at = Column(DateTime, nullable=True)
+    finished_at = Column(DateTime)
 
-    user = relationship("User")
-    template = relationship("ExamTemplate")
+    # 🔴 هذا السطر المهم
+    questions = relationship(
+        "ExamAttemptQuestion",
+        back_populates="attempt",
+        cascade="all, delete"
+    )
