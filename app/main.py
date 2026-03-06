@@ -70,7 +70,7 @@ def startup():
     db = SessionLocal()
 
     seed_data(db)
-    seed_test_data(db)
+# seed_test_data(db) #
 
     db.close()
 
