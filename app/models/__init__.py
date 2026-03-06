@@ -61,3 +61,4 @@ from .question_statistics import QuestionStatistics
 from .favorite import Favorite
 from .content_view import ContentView
 from .monthly_reset import MonthlyReset
+from app.models.question_option import QuestionOption
