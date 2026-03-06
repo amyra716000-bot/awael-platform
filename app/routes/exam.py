@@ -8,7 +8,7 @@ from app.core.security import get_current_user
 from app.core.subscription_checker import get_active_subscription
 
 from app.models.exam_template import ExamTemplate
-from app.models.exam_attempt import ExamAttempt
+from app.models.exam_attempt import ExamAttempt, AttemptStatus
 from app.models.exam_attempt_question import ExamAttemptQuestion
 
 from app.services.exam_service import start_exam_attempt, finish_exam_attempt
