@@ -41,7 +41,7 @@ def start_exam(
         )
 
     attempt = ExamAttempt(
-        user_id=user.id,
+        user_id = user["id"]
         template_id=template.id,
         started_at=datetime.utcnow(),
         is_finished=False
