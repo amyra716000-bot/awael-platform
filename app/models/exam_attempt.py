@@ -22,6 +22,7 @@ class ExamAttempt(Base):
 
     percentage = Column(Integer, default=0)
     correct_answers = Column(Integer, default=0)
+    total_degree = Column(Integer, default=0)
 
     started_at = Column(DateTime, default=datetime.utcnow)
     finished_at = Column(DateTime, nullable=True)
