@@ -14,6 +14,8 @@ from app.schemas.question import (
     QuestionResponse
 )
 
+from app.schemas.question import AnswerRequest
+
 from app.core.security import get_current_admin, get_current_user
 
 router = APIRouter(prefix="/questions", tags=["Questions"])
@@ -234,4 +236,64 @@ def daily_question(
         "answer": question.answer,
         "year": question.ministry_year,
         "round": question.ministry_round
+    }
+
+# =========================
+# ANSWER QUESTION
+# =========================
+@router.post("/{question_id}/answer")
+def answer_question(
+    question_id: int,
+    answer: AnswerRequest,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+
+    question = db.query(Question).filter(
+        Question.id == question_id
+    ).first()
+
+    if not question:
+        raise HTTPException(
+            status_code=404,
+            detail="Question not found"
+        )
+
+    option = db.query(QuestionOption).filter(
+        QuestionOption.id == answer.option_id,
+        QuestionOption.question_id == question_id
+    ).first()
+
+    if not option:
+        raise HTTPException(
+            status_code=404,
+            detail="Option not found"
+        )
+
+    # زيادة عدد المحاولات
+    question.total_attempts += 1
+
+    correct = option.is_correct
+
+    if correct:
+        question.correct_attempts += 1
+
+    db.commit()
+
+    if correct:
+        return {
+            "correct": True,
+            "message": "إجابة صحيحة"
+        }
+
+    # جلب الإجابة الصحيحة
+    correct_option = db.query(QuestionOption).filter(
+        QuestionOption.question_id == question_id,
+        QuestionOption.is_correct == True
+    ).first()
+
+    return {
+        "correct": False,
+        "correct_option_id": correct_option.id,
+        "message": "إجابة خاطئة"
     }
