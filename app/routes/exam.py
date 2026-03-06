@@ -3,7 +3,9 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 
 from app.database.session import get_db
-from app.models.exam import ExamTemplate, ExamAttempt, ExamAttemptQuestion
+from app.models.exam_template import ExamTemplate
+from app.models.exam_attempt import ExamAttempt
+from app.models.exam_attempt_question import ExamAttemptQuestion
 from app.models.question import Question
 from app.models.user import User
 from app.dependencies.auth import get_current_user
