@@ -57,22 +57,32 @@ app.add_middleware(SlowAPIMiddleware)
 # =========================
 from app import models
 
+
 # =========================
 # Startup Event
 # =========================
 @app.on_event("startup")
 def startup():
 
-    # إنشاء الجداول
-    Base.metadata.create_all(bind=engine)
+    try:
+        # إنشاء الجداول إذا لم تكن موجودة
+        Base.metadata.create_all(bind=engine)
 
-    # إضافة البيانات الأساسية
-    db = SessionLocal()
+        db = SessionLocal()
 
-    seed_data(db)
-# seed_test_data(db) #
+        # إدخال البيانات الأساسية
+        seed_data(db)
 
-    db.close()
+        # بيانات اختبار (اختياري)
+        # seed_test_data(db)
+
+        db.close()
+
+        print("Database initialized successfully")
+
+    except Exception as e:
+        print("Startup error:", e)
+
 
 # =========================
 # Health Check
@@ -85,11 +95,13 @@ def root():
         "version": "1.0.0"
     }
 
+
 @app.get("/health")
 def health():
     return {
         "status": "healthy"
     }
+
 
 # =========================
 # Import Routers
@@ -111,6 +123,7 @@ from app.routes.section import router as section_router
 from app.routes.student import router as student_router
 
 from app.admin_exam_templates import router as admin_exam_templates_router
+
 
 # =========================
 # Register Routers
