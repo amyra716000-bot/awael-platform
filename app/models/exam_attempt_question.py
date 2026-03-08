@@ -6,6 +6,19 @@ from app.database.session import Base
 class ExamAttemptQuestion(Base):
     __tablename__ = "exam_attempt_questions"
 
+    id = Column(Integer, primary_key=True)
+
+    attempt_id = Column(Integer, ForeignKey("exam_attempts.id"))
+    question_id = Column(Integer, ForeignKey("questions.id"))
+
+    order = Column(Integer)
+
+    selected_option_id = Column(Integer, ForeignKey("question_options.id"), nullable=True)
+
+    is_correct = Column(Integer, nullable=True)
+
+    question = relationship("Question")
+
     # =========================
     # Columns
     # =========================
