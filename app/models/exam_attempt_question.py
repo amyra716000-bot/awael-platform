@@ -6,16 +6,22 @@ from app.database.session import Base
 class ExamAttemptQuestion(Base):
     __tablename__ = "exam_attempt_questions"
 
-    id = Column(Integer, primary_key=True)
+    # =========================
+    # Columns
+    # =========================
+
+    id = Column(Integer, primary_key=True, index=True)
 
     exam_attempt_id = Column(
         Integer,
-        ForeignKey("exam_attempts.id")
+        ForeignKey("exam_attempts.id"),
+        index=True
     )
 
     question_id = Column(
         Integer,
-        ForeignKey("questions.id")
+        ForeignKey("questions.id"),
+        index=True
     )
 
     question_text = Column(String)
@@ -32,6 +38,16 @@ class ExamAttemptQuestion(Base):
 
     question_degree = Column(Integer, default=1)
 
-    attempt = relationship("ExamAttempt")
+    # =========================
+    # Relationships
+    # =========================
 
-    question = relationship("Question")
+    attempt = relationship(
+        "ExamAttempt",
+        back_populates="questions"
+    )
+
+    question = relationship(
+        "Question",
+        back_populates="exam_attempt_questions"
+    )
