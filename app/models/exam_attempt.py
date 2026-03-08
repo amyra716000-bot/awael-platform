@@ -13,37 +13,58 @@ class AttemptStatus(str, enum.Enum):
 class ExamAttempt(Base):
     __tablename__ = "exam_attempts"
 
-    id = Column(Integer, primary_key=True)
+    # =========================
+    # Columns
+    # =========================
 
-    user_id = Column(Integer, ForeignKey("users.id"))
-    template_id = Column(Integer, ForeignKey("exam_templates.id"))
+    id = Column(Integer, primary_key=True, index=True)
 
-    status = Column(Enum(AttemptStatus), default=AttemptStatus.in_progress)
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id"),
+        index=True
+    )
+
+    template_id = Column(
+        Integer,
+        ForeignKey("exam_templates.id"),
+        index=True
+    )
+
+    status = Column(
+        Enum(AttemptStatus),
+        default=AttemptStatus.in_progress
+    )
 
     percentage = Column(Integer, default=0)
-    
+
     correct_answers = Column(Integer, default=0)
-    
+
     total_degree = Column(Integer, default=0)
-    
+
     wrong_answers = Column(Integer, default=0)
 
-    skipped_answers = Column(Integer, default=0)
-    
     skipped_answers = Column(Integer, default=0)
 
     is_finished = Column(Boolean, default=False)
 
     started_at = Column(DateTime, default=datetime.utcnow)
+
     finished_at = Column(DateTime, nullable=True)
 
-    # 🔴 العلاقة المطلوبة
+    # =========================
+    # Relationships
+    # =========================
+
     user = relationship(
         "User",
         back_populates="exam_attempts"
     )
 
-    template = relationship("ExamTemplate")
+    template = relationship(
+        "ExamTemplate",
+        back_populates="attempts"
+    )
 
     questions = relationship(
         "ExamAttemptQuestion",
