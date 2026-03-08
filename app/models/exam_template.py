@@ -16,12 +16,16 @@ class ExamTemplate(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
+    # اسم الامتحان
     name = Column(String, nullable=False)
 
     # نوع الامتحان
     type = Column(Enum(ExamType), nullable=False)
 
-    # المرحلة
+    # ======================
+    # المرحلة الدراسية
+    # ======================
+
     stage_id = Column(
         Integer,
         ForeignKey("stages.id", ondelete="RESTRICT"),
@@ -37,13 +41,17 @@ class ExamTemplate(Base):
         index=True
     )
 
-    # القسم
+    # القسم / الدرس
     section_id = Column(
         Integer,
         ForeignKey("sections.id", ondelete="RESTRICT"),
         nullable=True,
         index=True
     )
+
+    # ======================
+    # إعدادات الامتحان
+    # ======================
 
     # عدد الاسئلة
     total_questions = Column(Integer, nullable=False)
@@ -57,29 +65,31 @@ class ExamTemplate(Base):
     # مستوى الامتحان
     difficulty = Column(String(10), default="medium")
 
-    # ترتيب الامتحان
-    order = Column(Integer, default=0)
+    # ترتيب الامتحان (بدل order)
+    display_order = Column(Integer, default=0)
 
     # حالة الامتحان
     is_active = Column(Boolean, default=True)
 
-    # وقت البداية والنهاية
+    # وقت البداية
     start_date = Column(DateTime, default=datetime.utcnow)
+
+    # وقت النهاية
     end_date = Column(DateTime, nullable=True)
 
-    # عدد المحاولات
+    # عدد المحاولات المسموح بها
     attempt_limit = Column(Integer, default=1)
 
     # هل الامتحان مدفوع
     is_paid = Column(Boolean, default=True)
 
-    # عشوائية الاسئلة
+    # عشوائية ترتيب الاسئلة
     randomize_questions = Column(Boolean, default=True)
 
-    # عشوائية الخيارات
+    # عشوائية ترتيب الخيارات
     randomize_options = Column(Boolean, default=True)
 
-    # Leaderboard
+    # تفعيل لوحة المتصدرين
     leaderboard_enabled = Column(Boolean, default=True)
 
     # اظهار الاجوبة بعد الانتهاء
@@ -90,9 +100,15 @@ class ExamTemplate(Base):
     # ======================
 
     ministry_year = Column(Integer, nullable=True)
+
     ministry_round = Column(String(20), nullable=True)
 
+    # ======================
     # العلاقات
+    # ======================
+
     stage = relationship("Stage")
+
     subject = relationship("Subject")
+
     section = relationship("Section")
