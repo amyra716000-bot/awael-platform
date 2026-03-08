@@ -9,7 +9,6 @@ from app.models.question_type import QuestionType
 
 
 def seed():
-
     db = SessionLocal()
 
     # Stage
@@ -75,12 +74,11 @@ def seed():
         db.refresh(question)
 
         for i, option in enumerate(options):
-
             db.add(
                 QuestionOption(
                     question_id=question.id,
                     text=option,
-                    is_correct=i == correct,
+                    is_correct=(i == correct),
                     order=i
                 )
             )
@@ -90,10 +88,6 @@ def seed():
     db.close()
 
     print("Test data inserted successfully")
-
-
-if __name__ == "__main__":
-    seed()
 
 
 if __name__ == "__main__":
