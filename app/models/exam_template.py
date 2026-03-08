@@ -14,6 +14,10 @@ class ExamType(str, enum.Enum):
 class ExamTemplate(Base):
     __tablename__ = "exam_templates"
 
+    # =========================
+    # Columns
+    # =========================
+
     id = Column(Integer, primary_key=True, index=True)
 
     # اسم الامتحان
@@ -22,9 +26,9 @@ class ExamTemplate(Base):
     # نوع الامتحان
     type = Column(Enum(ExamType), nullable=False)
 
-    # ======================
+    # =========================
     # المرحلة الدراسية
-    # ======================
+    # =========================
 
     stage_id = Column(
         Integer,
@@ -49,9 +53,9 @@ class ExamTemplate(Base):
         index=True
     )
 
-    # ======================
+    # =========================
     # إعدادات الامتحان
-    # ======================
+    # =========================
 
     # عدد الاسئلة
     total_questions = Column(Integer, nullable=False)
@@ -65,7 +69,7 @@ class ExamTemplate(Base):
     # مستوى الامتحان
     difficulty = Column(String(10), default="medium")
 
-    # ترتيب الامتحان (بدل order)
+    # ترتيب الامتحان
     display_order = Column(Integer, default=0)
 
     # حالة الامتحان
@@ -77,38 +81,53 @@ class ExamTemplate(Base):
     # وقت النهاية
     end_date = Column(DateTime, nullable=True)
 
-    # عدد المحاولات المسموح بها
+    # عدد المحاولات
     attempt_limit = Column(Integer, default=1)
 
     # هل الامتحان مدفوع
     is_paid = Column(Boolean, default=True)
 
-    # عشوائية ترتيب الاسئلة
+    # عشوائية الاسئلة
     randomize_questions = Column(Boolean, default=True)
 
-    # عشوائية ترتيب الخيارات
+    # عشوائية الخيارات
     randomize_options = Column(Boolean, default=True)
 
-    # تفعيل لوحة المتصدرين
+    # لوحة المتصدرين
     leaderboard_enabled = Column(Boolean, default=True)
 
     # اظهار الاجوبة بعد الانتهاء
     show_answers_after_finish = Column(Boolean, default=False)
 
-    # ======================
+    # =========================
     # الامتحانات الوزارية
-    # ======================
+    # =========================
 
     ministry_year = Column(Integer, nullable=True)
 
     ministry_round = Column(String(20), nullable=True)
 
-    # ======================
+    # =========================
     # العلاقات
-    # ======================
+    # =========================
 
-    stage = relationship("Stage")
+    stage = relationship(
+        "Stage",
+        back_populates="exam_templates"
+    )
 
-    subject = relationship("Subject")
+    subject = relationship(
+        "Subject",
+        back_populates="exam_templates"
+    )
 
-    section = relationship("Section")
+    section = relationship(
+        "Section",
+        back_populates="exam_templates"
+    )
+
+    attempts = relationship(
+        "ExamAttempt",
+        back_populates="template",
+        cascade="all, delete"
+    )
