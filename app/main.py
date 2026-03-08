@@ -1,17 +1,24 @@
-# redeploy force
+# =========================
+# Load ENV
+# =========================
+
 from dotenv import load_dotenv
 load_dotenv()
 
-import os
+# =========================
+# Imports
+# =========================
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
-from app.database.session import engine, Base, SessionLocal
+from app.database.session import engine, Base
 
 # =========================
 # Rate Limiting
 # =========================
+
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.middleware import SlowAPIMiddleware
@@ -21,6 +28,7 @@ limiter = Limiter(key_func=get_remote_address)
 # =========================
 # Create App
 # =========================
+
 app = FastAPI(
     title="Awael Platform API",
     description="Educational platform API for Iraqi students",
@@ -33,6 +41,7 @@ app = FastAPI(
 # =========================
 # CORS
 # =========================
+
 origins = [
     "http://localhost:3000",
     "http://localhost:5173",
@@ -50,12 +59,14 @@ app.add_middleware(
 # =========================
 # Rate Limit
 # =========================
+
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
 
 # =========================
 # Import Models
 # =========================
+
 from app import models
 
 # =========================
@@ -75,13 +86,14 @@ app.include_router(admin.router)
 # =========================
 # Startup Event
 # =========================
+
 @app.on_event("startup")
 def startup():
 
-    # إنشاء الجداول إذا لم تكن موجودة
+    # إنشاء الجداول
     Base.metadata.create_all(bind=engine)
 
-    # إضافة عمود score إذا لم يكن موجود
+    # إصلاح قاعدة البيانات (score column)
     try:
         with engine.connect() as conn:
             conn.execute(text("""
@@ -91,3 +103,11 @@ def startup():
             conn.commit()
     except Exception as e:
         print("Migration skipped:", e)
+
+# =========================
+# Health Check
+# =========================
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
