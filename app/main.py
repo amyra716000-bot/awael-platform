@@ -59,6 +59,20 @@ app.add_middleware(SlowAPIMiddleware)
 from app import models
 
 # =========================
+# Import Routers
+# =========================
+
+from app.routes import auth
+from app.routes import question
+from app.routes import exam
+from app.routes import admin
+
+app.include_router(auth.router)
+app.include_router(question.router)
+app.include_router(exam.router)
+app.include_router(admin.router)
+
+# =========================
 # Startup Event
 # =========================
 @app.on_event("startup")
