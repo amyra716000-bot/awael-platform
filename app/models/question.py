@@ -7,6 +7,10 @@ from app.models.question_category import question_category_link
 class Question(Base):
     __tablename__ = "questions"
 
+    # =========================
+    # Columns
+    # =========================
+
     id = Column(Integer, primary_key=True, index=True)
 
     content = Column(Text, nullable=False)
@@ -20,7 +24,7 @@ class Question(Base):
     is_important = Column(Boolean, default=False)
 
     is_ministry = Column(Boolean, default=False)
-    
+
     is_active = Column(Boolean, default=True)
 
     ministry_year = Column(Integer)
@@ -35,13 +39,19 @@ class Question(Base):
 
     section_id = Column(
         Integer,
-        ForeignKey("sections.id", ondelete="CASCADE")
+        ForeignKey("sections.id", ondelete="CASCADE"),
+        index=True
     )
 
     type_id = Column(
         Integer,
-        ForeignKey("question_types.id")
+        ForeignKey("question_types.id"),
+        index=True
     )
+
+    # =========================
+    # Relationships
+    # =========================
 
     section = relationship(
         "Section",
@@ -71,9 +81,10 @@ class Question(Base):
         back_populates="questions"
     )
 
-    # ---------------------------
-    # Question Options (NEW)
-    # ---------------------------
+    # =========================
+    # Question Options
+    # =========================
+
     options = relationship(
         "QuestionOption",
         back_populates="question",
