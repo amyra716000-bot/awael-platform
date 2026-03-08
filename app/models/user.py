@@ -6,12 +6,13 @@ from app.database.session import Base
 class User(Base):
     __tablename__ = "users"
 
+    # =========================
+    # Columns
+    # =========================
+
     id = Column(Integer, primary_key=True, index=True)
 
-    # =========================
     # معلومات الحساب
-    # =========================
-
     name = Column(String, nullable=True)
 
     email = Column(
@@ -52,57 +53,48 @@ class User(Base):
     stage_id = Column(
         Integer,
         ForeignKey("stages.id"),
-        nullable=True
+        nullable=True,
+        index=True
     )
+
+    # =========================
+    # Relationships
+    # =========================
 
     stage = relationship(
-        "Stage"
+        "Stage",
+        back_populates="users"
     )
 
-    # =========================
     # الاشتراكات
-    # =========================
-
     subscriptions = relationship(
         "Subscription",
         back_populates="user",
         cascade="all, delete-orphan"
     )
 
-    # =========================
     # محاولات الامتحان
-    # =========================
-
     exam_attempts = relationship(
         "ExamAttempt",
         back_populates="user",
         cascade="all, delete"
     )
 
-    # =========================
     # المفضلة
-    # =========================
-
     favorites = relationship(
         "Favorite",
         back_populates="user",
         cascade="all, delete-orphan"
     )
 
-    # =========================
     # لوحة المتصدرين
-    # =========================
-
     leaderboards = relationship(
         "Leaderboard",
         back_populates="user",
         cascade="all, delete-orphan"
     )
 
-    # =========================
     # تقدم الطالب
-    # =========================
-
     progress = relationship(
         "StudentProgress",
         back_populates="user",
