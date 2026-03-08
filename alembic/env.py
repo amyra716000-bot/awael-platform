@@ -1,5 +1,6 @@
 
-from logging.config import fileConfig
+from logging.config import fileConfigpython -m alembic upgrade head
+
 from sqlalchemy import pool
 from alembic import context
 
