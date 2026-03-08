@@ -6,19 +6,29 @@ from app.database.session import Base
 class Favorite(Base):
     __tablename__ = "favorites"
 
-    id = Column(Integer, primary_key=True)
+    # =========================
+    # Columns
+    # =========================
+
+    id = Column(Integer, primary_key=True, index=True)
 
     user_id = Column(
         Integer,
         ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     question_id = Column(
         Integer,
         ForeignKey("questions.id", ondelete="CASCADE"),
-        nullable=False
+        nullable=False,
+        index=True
     )
+
+    # =========================
+    # Relationships
+    # =========================
 
     user = relationship(
         "User",
@@ -30,6 +40,14 @@ class Favorite(Base):
         back_populates="favorites"
     )
 
+    # =========================
+    # Constraints
+    # =========================
+
     __table_args__ = (
-        UniqueConstraint("user_id", "question_id"),
+        UniqueConstraint(
+            "user_id",
+            "question_id",
+            name="unique_user_favorite_question"
+        ),
     )
