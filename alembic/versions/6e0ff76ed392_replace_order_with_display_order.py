@@ -93,7 +93,7 @@ def upgrade() -> None:
     op.alter_column('monthly_resets', 'last_reset',
                existing_type=postgresql.TIMESTAMP(),
                nullable=False)
-    #op.create_unique_constraint('unique_monthly_reset', 'monthly_resets', ['id'])
+    # op.create_unique_constraint('unique_monthly_reset', 'monthly_resets', ['id'])
     op.add_column('plans', sa.Column('description', sa.String(), nullable=True))
     op.add_column('plans', sa.Column('is_active', sa.Boolean(), nullable=True))
     op.drop_constraint(op.f('plans_name_key'), 'plans', type_='unique')
