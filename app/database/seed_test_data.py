@@ -9,7 +9,6 @@ from app.models.question_type import QuestionType
 
 
 def seed():
- 
 
     db = SessionLocal()
 
@@ -89,3 +88,5 @@ def seed():
 
 if __name__ == "__main__":
     seed()
+
+
