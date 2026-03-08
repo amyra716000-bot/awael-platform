@@ -13,6 +13,23 @@ class AttemptStatus(str, enum.Enum):
 class ExamAttempt(Base):
     __tablename__ = "exam_attempts"
 
+    id = Column(Integer, primary_key=True)
+
+    user_id = Column(Integer, ForeignKey("users.id"))
+    template_id = Column(Integer, ForeignKey("exam_templates.id"))
+
+    started_at = Column(DateTime)
+    finished_at = Column(DateTime)
+
+    score = Column(Integer)
+
+    questions = relationship(
+        "ExamAttemptQuestion",
+        back_populates="attempt",
+        foreign_keys="ExamAttemptQuestion.attempt_id",
+        cascade="all, delete"
+    )
+
     # =========================
     # Columns
     # =========================
