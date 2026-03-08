@@ -6,6 +6,10 @@ import enum
 
 class SectionType(str, enum.Enum):
 
+    # =========================
+    # أنواع الأقسام العادية
+    # =========================
+
     definitions = "definitions"
     explanations = "explanations"
     problems = "problems"
@@ -13,6 +17,10 @@ class SectionType(str, enum.Enum):
     drawings = "drawings"
     essay = "essay"
     grammar = "grammar"
+
+    # =========================
+    # الأقسام الوزارية
+    # =========================
 
     ministry_definitions = "ministry_definitions"
     ministry_reasons = "ministry_reasons"
@@ -25,6 +33,10 @@ class SectionType(str, enum.Enum):
 class Section(Base):
     __tablename__ = "sections"
 
+    # =========================
+    # Columns
+    # =========================
+
     id = Column(Integer, primary_key=True, index=True)
 
     name = Column(String, nullable=False)
@@ -34,10 +46,15 @@ class Section(Base):
     chapter_id = Column(
         Integer,
         ForeignKey("chapters.id", ondelete="CASCADE"),
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     order = Column(Integer, default=0)
+
+    # =========================
+    # Relationships
+    # =========================
 
     chapter = relationship(
         "Chapter",
@@ -48,4 +65,9 @@ class Section(Base):
         "Question",
         back_populates="section",
         cascade="all, delete-orphan"
+    )
+
+    exam_templates = relationship(
+        "ExamTemplate",
+        back_populates="section"
     )
