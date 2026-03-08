@@ -13,27 +13,6 @@ class AttemptStatus(str, enum.Enum):
 class ExamAttempt(Base):
     __tablename__ = "exam_attempts"
 
-    id = Column(Integer, primary_key=True)
-
-    user_id = Column(Integer, ForeignKey("users.id"))
-    template_id = Column(Integer, ForeignKey("exam_templates.id"))
-
-    started_at = Column(DateTime)
-    finished_at = Column(DateTime)
-
-    score = Column(Integer)
-
-    questions = relationship(
-        "ExamAttemptQuestion",
-        back_populates="attempt",
-        foreign_keys="ExamAttemptQuestion.attempt_id",
-        cascade="all, delete"
-    )
-
-    # =========================
-    # Columns
-    # =========================
-
     id = Column(Integer, primary_key=True, index=True)
 
     user_id = Column(
@@ -57,11 +36,13 @@ class ExamAttempt(Base):
 
     correct_answers = Column(Integer, default=0)
 
-    total_degree = Column(Integer, default=0)
-
     wrong_answers = Column(Integer, default=0)
 
     skipped_answers = Column(Integer, default=0)
+
+    total_degree = Column(Integer, default=0)
+
+    score = Column(Integer, default=0)
 
     is_finished = Column(Boolean, default=False)
 
