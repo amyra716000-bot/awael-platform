@@ -6,6 +6,10 @@ from app.database.session import Base
 class QuestionType(Base):
     __tablename__ = "question_types"
 
+    # =========================
+    # Columns
+    # =========================
+
     id = Column(Integer, primary_key=True, index=True)
 
     # اسم نوع السؤال
@@ -16,7 +20,10 @@ class QuestionType(Base):
         index=True
     )
 
-    # العلاقة مع الأسئلة
+    # =========================
+    # Relationships
+    # =========================
+
     questions = relationship(
         "Question",
         back_populates="type",
