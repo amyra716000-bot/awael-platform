@@ -8,7 +8,7 @@ from app.models.question_option import QuestionOption
 from app.models.question_type import QuestionType
 
 
-def seed():
+ def seed():
 
     db = SessionLocal()
 
