@@ -15,7 +15,13 @@ class ExamAttemptQuestion(Base):
 
     selected_option_id = Column(Integer, ForeignKey("question_options.id"), nullable=True)
 
-    is_correct = Column(Integer, nullable=True)
+    is_correct = Column(Boolean, nullable=True)
+
+    attempt = relationship(
+        "ExamAttempt",
+        back_populates="questions",
+        foreign_keys=[attempt_id]
+    )
 
     question = relationship("Question")
 
