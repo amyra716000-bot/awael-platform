@@ -6,6 +6,10 @@ from app.database.session import Base
 class Subject(Base):
     __tablename__ = "subjects"
 
+    # =========================
+    # Columns
+    # =========================
+
     id = Column(Integer, primary_key=True, index=True)
 
     name = Column(String, nullable=False)
@@ -13,8 +17,13 @@ class Subject(Base):
     stage_id = Column(
         Integer,
         ForeignKey("stages.id", ondelete="CASCADE"),
-        nullable=False
+        nullable=False,
+        index=True
     )
+
+    # =========================
+    # Relationships
+    # =========================
 
     stage = relationship(
         "Stage",
@@ -25,4 +34,14 @@ class Subject(Base):
         "Chapter",
         back_populates="subject",
         cascade="all, delete-orphan"
+    )
+
+    exam_templates = relationship(
+        "ExamTemplate",
+        back_populates="subject"
+    )
+
+    questions = relationship(
+        "Question",
+        back_populates="subject"
     )
