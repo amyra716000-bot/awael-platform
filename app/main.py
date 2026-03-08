@@ -1,4 +1,6 @@
 # redeploy force
+from dotenv import load_dotenv
+load_dotenv()
 
 import os
 from fastapi import FastAPI
