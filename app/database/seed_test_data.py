@@ -88,3 +88,13 @@ def seed():
 
 if __name__ == "__main__":
     seed()
+
+
+db.add(exam)
+db.commit()
+
+print("Seed completed")
+
+
+if __name__ == "__main__":
+    seed()
