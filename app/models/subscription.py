@@ -7,6 +7,10 @@ from app.database.session import Base
 class Subscription(Base):
     __tablename__ = "subscriptions"
 
+    # =========================
+    # Columns
+    # =========================
+
     id = Column(Integer, primary_key=True, index=True)
 
     # المستخدم
@@ -25,25 +29,28 @@ class Subscription(Base):
         index=True
     )
 
-    # وقت الاشتراك
+    # =========================
+    # مدة الاشتراك
+    # =========================
+
     start_date = Column(DateTime, default=datetime.utcnow)
 
-    # وقت انتهاء الاشتراك
     end_date = Column(DateTime, nullable=False)
 
     # =========================
     # AI Usage Tracking
     # =========================
+
     ai_used_today = Column(Integer, default=0)
 
     last_reset_date = Column(DateTime, default=datetime.utcnow)
 
-    # عدد الأسئلة المستخدمة اليوم
     questions_used_today = Column(Integer, default=0)
 
     # =========================
     # حالة الاشتراك
     # =========================
+
     is_active = Column(Boolean, default=True)
 
     payment_status = Column(String(20), default="paid")
@@ -53,8 +60,9 @@ class Subscription(Base):
     cancelled_at = Column(DateTime, nullable=True)
 
     # =========================
-    # العلاقات
+    # Relationships
     # =========================
+
     user = relationship(
         "User",
         back_populates="subscriptions"
