@@ -6,6 +6,10 @@ from app.database.session import Base
 class Chapter(Base):
     __tablename__ = "chapters"
 
+    # =========================
+    # Columns
+    # =========================
+
     id = Column(Integer, primary_key=True, index=True)
 
     name = Column(String, nullable=False)
@@ -13,8 +17,13 @@ class Chapter(Base):
     subject_id = Column(
         Integer,
         ForeignKey("subjects.id", ondelete="CASCADE"),
-        nullable=False
+        nullable=False,
+        index=True
     )
+
+    # =========================
+    # Relationships
+    # =========================
 
     subject = relationship(
         "Subject",
