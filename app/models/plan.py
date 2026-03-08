@@ -6,10 +6,19 @@ from app.database.session import Base
 class Plan(Base):
     __tablename__ = "plans"
 
+    # =========================
+    # Columns
+    # =========================
+
     id = Column(Integer, primary_key=True, index=True)
 
     # اسم الخطة
-    name = Column(String, unique=True, nullable=False, index=True)
+    name = Column(
+        String,
+        unique=True,
+        nullable=False,
+        index=True
+    )
 
     # السعر بالدولار
     price = Column(Integer, nullable=False)
@@ -34,22 +43,14 @@ class Plan(Base):
     # الصلاحيات
     # =========================
 
-    access_exams = Column(Boolean, default=False)
-
-    access_leaderboard = Column(Boolean, default=False)
-
-    access_schedule = Column(Boolean, default=False)
-
-    access_essay = Column(Boolean, default=False)
-
-    # حالة الخطة
     is_active = Column(Boolean, default=True)
 
     # =========================
-    # العلاقة مع الاشتراكات
+    # Relationships
     # =========================
 
     subscriptions = relationship(
         "Subscription",
-        back_populates="plan"
+        back_populates="plan",
+        cascade="all, delete"
     )
