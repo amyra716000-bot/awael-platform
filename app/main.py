@@ -5,6 +5,7 @@ load_dotenv()
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 
 from app.database.session import engine, Base, SessionLocal
 
@@ -57,84 +58,22 @@ app.add_middleware(SlowAPIMiddleware)
 # =========================
 from app import models
 
-
 # =========================
 # Startup Event
 # =========================
 @app.on_event("startup")
 def startup():
 
+    # إنشاء الجداول إذا لم تكن موجودة
+    Base.metadata.create_all(bind=engine)
+
+    # إضافة عمود score إذا لم يكن موجود
     try:
-        # إنشاء الجداول إذا لم تكن موجودة
-        Base.metadata.create_all(bind=engine)
-
-        db = SessionLocal()
-
-        db.close()
-
-        print("Database initialized successfully")
-
+        with engine.connect() as conn:
+            conn.execute(text("""
+                ALTER TABLE exam_attempts
+                ADD COLUMN IF NOT EXISTS score INTEGER DEFAULT 0;
+            """))
+            conn.commit()
     except Exception as e:
-        print("Startup error:", e)
-
-
-# =========================
-# Health Check
-# =========================
-@app.get("/")
-def root():
-    return {
-        "status": "running",
-        "platform": "Awael Platform",
-        "version": "1.0.0"
-    }
-
-
-@app.get("/health")
-def health():
-    return {
-        "status": "healthy"
-    }
-
-
-# =========================
-# Import Routers
-# =========================
-from app.routes import (
-    auth,
-    stage,
-    setup,
-    plan,
-    subscription,
-    ai,
-    exam
-)
-
-from app.routes.question import router as question_router
-from app.routes.subject import router as subject_router
-from app.routes.chapter import router as chapter_router
-from app.routes.section import router as section_router
-from app.routes.student import router as student_router
-
-from app.admin_exam_templates import router as admin_exam_templates_router
-
-
-# =========================
-# Register Routers
-# =========================
-app.include_router(auth.router)
-app.include_router(stage.router)
-app.include_router(setup.router)
-app.include_router(plan.router)
-app.include_router(subscription.router)
-app.include_router(ai.router)
-app.include_router(exam.router)
-
-app.include_router(question_router)
-app.include_router(subject_router)
-app.include_router(chapter_router)
-app.include_router(section_router)
-
-app.include_router(student_router)
-
-app.include_router(admin_exam_templates_router)
+        print("Migration skipped:", e)
