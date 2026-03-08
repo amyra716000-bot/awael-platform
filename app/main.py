@@ -7,7 +7,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database.session import engine, Base, SessionLocal
-from app.database.seed_test_data import seed_test_data
 
 # =========================
 # Rate Limiting
@@ -70,9 +69,6 @@ def startup():
         Base.metadata.create_all(bind=engine)
 
         db = SessionLocal()
-
-        # بيانات اختبار (اختياري)
-        # seed_test_data(db)
 
         db.close()
 
