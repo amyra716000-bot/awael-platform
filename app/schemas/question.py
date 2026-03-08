@@ -2,11 +2,27 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 
-class QuestionOptionResponse(BaseModel):
+class QuestionResponse(BaseModel):
     id: int
-    text: str
-    is_correct: bool
-    order: int
+    content: str
+    answer: str
+
+    explanation: Optional[str] = None
+
+    difficulty: Optional[str] = None
+
+    section_id: int
+    type_id: int
+
+    is_ministry: bool
+    ministry_year: Optional[int] = None
+    ministry_round: Optional[str] = None
+
+    is_important: bool
+
+    degree: Optional[int] = None
+
+    options: List[QuestionOptionResponse] = []
 
     class Config:
         from_attributes = True
