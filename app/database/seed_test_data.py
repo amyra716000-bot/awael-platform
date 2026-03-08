@@ -9,15 +9,14 @@ from app.models.question_type import QuestionType
 
 
 def seed():
+
     db = SessionLocal()
 
-    # Stage
-    stage = Stage(name="المرحلة الاعدادية")
+    stage = Stage(name="السادس الاعدادي")
     db.add(stage)
     db.commit()
     db.refresh(stage)
 
-    # Subject
     subject = Subject(
         name="الرياضيات",
         stage_id=stage.id
@@ -26,7 +25,6 @@ def seed():
     db.commit()
     db.refresh(subject)
 
-    # Chapter
     chapter = Chapter(
         name="الفصل الاول",
         subject_id=subject.id
@@ -35,9 +33,8 @@ def seed():
     db.commit()
     db.refresh(chapter)
 
-    # Section
     section = Section(
-        name="المعادلات",
+        name="اسئلة اختيار",
         type="multiple_choice",
         chapter_id=chapter.id,
         order=1
@@ -46,7 +43,6 @@ def seed():
     db.commit()
     db.refresh(section)
 
-    # Question type
     qtype = QuestionType(name="mcq")
     db.add(qtype)
     db.commit()
@@ -60,10 +56,10 @@ def seed():
         ("كم حاصل 9 - 3 ؟", ["3", "5", "6", "7"], 2),
     ]
 
-    for q_text, options, correct in questions:
+    for text, options, correct in questions:
 
         question = Question(
-            content=q_text,
+            content=text,
             answer=options[correct],
             section_id=section.id,
             type_id=qtype.id
@@ -73,21 +69,21 @@ def seed():
         db.commit()
         db.refresh(question)
 
-        for i, option in enumerate(options):
-            db.add(
-                QuestionOption(
-                    question_id=question.id,
-                    text=option,
-                    is_correct=(i == correct),
-                    order=i
-                )
+        for i, opt in enumerate(options):
+            option = QuestionOption(
+                question_id=question.id,
+                text=opt,
+                is_correct=(i == correct),
+                order=i
             )
+
+            db.add(option)
 
         db.commit()
 
     db.close()
 
-    print("Test data inserted successfully")
+    print("TEST DATA INSERTED")
 
 
 if __name__ == "__main__":
