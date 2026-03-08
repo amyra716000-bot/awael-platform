@@ -27,3 +27,9 @@ class Subject(Base):
         back_populates="subject",
         cascade="all, delete-orphan"
     )
+
+    # 🔴 العلاقة مع قوالب الامتحانات
+    exam_templates = relationship(
+        "ExamTemplate",
+        back_populates="subject"
+    )
