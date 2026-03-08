@@ -6,13 +6,25 @@ from app.database.session import Base
 class Leaderboard(Base):
     __tablename__ = "leaderboards"
 
-    id = Column(Integer, primary_key=True)
+    # =========================
+    # Columns
+    # =========================
 
-    user_id = Column(Integer, ForeignKey("users.id"))
+    id = Column(Integer, primary_key=True, index=True)
 
-    score = Column(Integer)
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id"),
+        index=True
+    )
+
+    score = Column(Integer, default=0)
 
     rank = Column(Integer)
+
+    # =========================
+    # Relationships
+    # =========================
 
     user = relationship(
         "User",
